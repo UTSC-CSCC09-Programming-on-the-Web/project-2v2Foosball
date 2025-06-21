@@ -55,17 +55,11 @@ export class Api {
 
   // Check if User is in Queue
   isUserInQueue(): Observable<boolean> {
-    return this.authService.getUser().pipe(
-      switchMap((user) => {
-        return this.http.post<boolean>(
-          `${environment.apiUrl}/queue/isInQueue`,
-          {
-            user: user,
-          },
-          { withCredentials: true },
-        );
-      }),
-    );
+    return this.http
+      .get<{ isInQueue: boolean }>(`${environment.apiUrl}/queue/userInQueue`, {
+        withCredentials: true,
+      })
+      .pipe(switchMap((response) => [response.isInQueue]));
   }
 
   // Create game

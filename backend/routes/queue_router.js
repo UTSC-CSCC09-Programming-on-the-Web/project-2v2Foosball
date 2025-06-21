@@ -8,8 +8,6 @@ const queue = [];
 //  Routes
 // Check if user is in the queue
 queueRouter.get("/userInQueue", isAuth, (req, res) => {
-  console.log("Running");
-
   const user = req.user;
   const isInQueue = queue.some((u) => u.userId === user.userId);
   return res.status(200).json({ isInQueue });
@@ -20,17 +18,8 @@ queueRouter.post("/add", isAuth, (req, res) => {
   const user = req.user;
   if (!queue.find((u) => u.userId === user.userId)) {
     queue.push(user);
-
-    console.log(
-      `User ${user.userId} added to queue. Current queue length: ${queue.length}`,
-    );
-    console.log(`Current queue: ${JSON.stringify(queue, null, 2)}`);
-
     res.status(200).json({ message: "User added to queue", user });
   } else {
-    console.log(
-      `User ${user.userId} is already in the queue. Current queue length: ${queue.length}`,
-    );
     res.status(422).json({ message: "User is already in the queue" });
   }
 });
