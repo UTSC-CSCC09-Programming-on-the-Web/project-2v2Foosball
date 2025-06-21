@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 
 import { sequelize } from "./datasource.js";
 import { authRouter } from "./routes/auth_router.js";
+import { checkoutRouter } from "./routes/checkout_router.js";
 
 const app = express();
 app.use(
@@ -26,6 +27,7 @@ try {
 
 // Routes here
 app.use("/api/auth", authRouter);
+app.use("/api/checkout", checkoutRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

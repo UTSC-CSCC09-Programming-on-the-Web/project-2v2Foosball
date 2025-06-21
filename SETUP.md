@@ -26,8 +26,11 @@ PORT=3000
 OAUTH_GITHUB_CLIENT_ID=your_github_client_id
 OAUTH_GITHUB_CLIENT_SECRET=your_github_client_secret
 DATABASE_URL=postgres://admin:password@localhost:5432/postgres
-STRIPE_SECRET_KEY=keep_empty_for_now
 JWT_SIGNING_KEY=your_jwt_signing_key
+
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_MEMBERSHIP_PRODUCT_ID=your_membership_product_id
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 ```
 
 > To generate a JWT signing key, you can use the following command in your terminal:
