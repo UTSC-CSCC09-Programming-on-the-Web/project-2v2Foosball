@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
 import { environment } from "../../environments/environment";
-import { Observable } from "rxjs";
+import { Observable, throwError } from "rxjs";
 import { User } from "../types/user";
 import { map, catchError } from "rxjs/operators";
 import { asyncScheduler, scheduled } from "rxjs";
@@ -31,7 +31,7 @@ export class AuthService {
       });
   }
 
-  getUser(): Observable<User | null> {
+  getUser(): Observable<User> {
     if (this.user) {
       return scheduled([this.user], asyncScheduler);
     }
@@ -46,7 +46,9 @@ export class AuthService {
           return user;
         }),
         catchError(() => {
-          return scheduled([null], asyncScheduler);
+          return throwError(() => {
+            return new Error("User not authenticated");
+          });
         }),
       );
   }
