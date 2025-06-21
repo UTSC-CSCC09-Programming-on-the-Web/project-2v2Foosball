@@ -27,6 +27,7 @@ export class AuthService {
     this.http
       .post(`${environment.apiUrl}/auth/logout`, {}, { withCredentials: true })
       .subscribe(() => {
+        this.user = null;
         this.router.navigate(["/login"]);
       });
   }
