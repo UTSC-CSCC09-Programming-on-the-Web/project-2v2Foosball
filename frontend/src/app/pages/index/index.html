@@ -1,2 +1,10 @@
 <app-header (logout)="logout()" [user]="user"></app-header>
-<p>index works!</p>
+<button *ngIf="!isQueued" (click)="addToQueue()" class="btn btn-primary">
+  Add to Queue
+</button>
+<button *ngIf="isQueued" (click)="removeFromQueue()" class="btn btn-secondary">
+  Remove from Queue
+  <div class="container">
+    <div class="queue"></div>
+  </div>
+</button>

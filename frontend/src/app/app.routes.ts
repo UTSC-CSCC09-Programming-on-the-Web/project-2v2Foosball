@@ -1,20 +1,20 @@
-import { Routes } from "@angular/router";
-import { Login } from "./pages/login/login";
-import { Index } from "./pages/index";
-import { authGuard } from "./guards/auth-guard";
+import { Routes } from '@angular/router';
+import { Login } from './pages/login/login';
+import { Index } from './pages/index';
+import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
   {
-    path: "",
+    path: '',
     component: Index,
     canActivate: [authGuard],
   },
   {
-    path: "login",
+    path: 'login',
     component: Login,
   },
   {
-    path: "**",
-    redirectTo: "/",
+    path: '**',
+    redirectTo: '/',
   },
 ];

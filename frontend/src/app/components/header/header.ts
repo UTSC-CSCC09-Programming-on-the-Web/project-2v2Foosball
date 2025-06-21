@@ -1,11 +1,11 @@
-import { Component, EventEmitter, Input, Output } from "@angular/core";
-import { User } from "../../types/user";
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { User } from '../../types/user';
 
 @Component({
-  selector: "app-header",
+  selector: 'app-header',
   imports: [],
-  templateUrl: "./header.html",
-  styleUrl: "./header.scss",
+  templateUrl: './header.html',
+  styleUrl: './header.scss',
 })
 export class Header {
   constructor() {}

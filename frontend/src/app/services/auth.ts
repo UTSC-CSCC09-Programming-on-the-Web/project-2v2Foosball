@@ -1,14 +1,14 @@
-import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { Router } from "@angular/router";
-import { environment } from "../../environments/environment";
-import { Observable, throwError } from "rxjs";
-import { User } from "../types/user";
-import { map, catchError } from "rxjs/operators";
-import { asyncScheduler, scheduled } from "rxjs";
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
+import { Observable, throwError } from 'rxjs';
+import { User } from '../types/user';
+import { map, catchError } from 'rxjs/operators';
+import { asyncScheduler, scheduled } from 'rxjs';
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class AuthService {
   user: User | null = null;
@@ -19,7 +19,7 @@ export class AuthService {
   ) {}
 
   // Redirect to backend for login with GitHub
-  login(provider: "github"): void {
+  login(provider: 'github'): void {
     window.location.href = `${environment.apiUrl}/auth/github`;
   }
 
@@ -27,7 +27,7 @@ export class AuthService {
     this.http
       .post(`${environment.apiUrl}/auth/logout`, {}, { withCredentials: true })
       .subscribe(() => {
-        this.router.navigate(["/login"]);
+        this.router.navigate(['/login']);
       });
   }
 
@@ -47,7 +47,7 @@ export class AuthService {
         }),
         catchError(() => {
           return throwError(() => {
-            return new Error("User not authenticated");
+            return new Error('User not authenticated');
           });
         }),
       );
