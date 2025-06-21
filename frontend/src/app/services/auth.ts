@@ -3,11 +3,16 @@ import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
 import { environment } from "../../environments/environment";
 import { Observable } from "rxjs";
+import { User } from "../types/user";
+import { map, catchError } from "rxjs/operators";
+import { asyncScheduler, scheduled } from "rxjs";
 
 @Injectable({
   providedIn: "root",
 })
 export class AuthService {
+  user: User | null = null;
+
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -26,9 +31,23 @@ export class AuthService {
       });
   }
 
-  getUser(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/auth/me`, {
-      withCredentials: true,
-    });
+  getUser(): Observable<User | null> {
+    if (this.user) {
+      return scheduled([this.user], asyncScheduler);
+    }
+
+    return this.http
+      .get<User>(`${environment.apiUrl}/auth/me`, {
+        withCredentials: true,
+      })
+      .pipe(
+        map((user: User) => {
+          this.user = user;
+          return user;
+        }),
+        catchError(() => {
+          return scheduled([null], asyncScheduler);
+        }),
+      );
   }
 }
