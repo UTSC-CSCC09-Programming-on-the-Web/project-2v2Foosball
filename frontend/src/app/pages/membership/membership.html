@@ -1,1 +1,72 @@
-<p>membership works!</p>
+<div class="membership-container">
+  <div class="membership-header">
+    <h1>Choose Your Plan</h1>
+    <p>Select a subscription plan to continue using our service</p>
+  </div>
+
+  <div class="plans-container">
+    <!-- Monthly Plan -->
+    <div
+      class="plan-card"
+      [class.selected]="selectedPlan === 'monthly'"
+      [class.loading]="isLoading && selectedPlan === 'monthly'"
+    >
+      <div class="plan-header">
+        <h2>Monthly Plan</h2>
+        <div class="price">
+          <span class="currency">$</span>
+          <span class="amount">10</span>
+          <span class="period">/month</span>
+        </div>
+      </div>
+
+      <button
+        class="plan-button monthly"
+        (click)="selectMonthlyPlan()"
+        [disabled]="isLoading"
+      >
+        <span
+          *ngIf="isLoading && selectedPlan === 'monthly'"
+          class="spinner"
+        ></span>
+        <span *ngIf="!(isLoading && selectedPlan === 'monthly')"
+          >Choose Monthly</span
+        >
+      </button>
+    </div>
+
+    <!-- Yearly Plan -->
+    <div
+      class="plan-card popular"
+      [class.selected]="selectedPlan === 'yearly'"
+      [class.loading]="isLoading && selectedPlan === 'yearly'"
+    >
+      <div class="popular-badge">Most Popular</div>
+
+      <div class="plan-header">
+        <h2>Yearly Plan</h2>
+        <div class="price">
+          <span class="currency">$</span>
+          <span class="amount">100</span>
+          <span class="period">/year</span>
+        </div>
+        <div class="savings">Save $20/year</div>
+      </div>
+
+      <button
+        class="plan-button yearly"
+        (click)="selectYearlyPlan()"
+        [disabled]="isLoading"
+      >
+        <span
+          *ngIf="isLoading && selectedPlan === 'yearly'"
+          class="spinner"
+        ></span>
+        <span *ngIf="!(isLoading && selectedPlan === 'yearly')"
+          >Choose Yearly</span
+        >
+      </button>
+    </div>
+  </div>
+  <button (click)="logout()" class="plan-button monthly">Logout</button>
+</div>

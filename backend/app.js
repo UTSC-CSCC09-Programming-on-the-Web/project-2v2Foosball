@@ -5,14 +5,17 @@ import cookieParser from "cookie-parser";
 import { sequelize } from "./datasource.js";
 import { authRouter } from "./routes/auth_router.js";
 import { checkoutRouter } from "./routes/checkout_router.js";
+import { webhookRouter } from "./routes/webhook_router.js";
 
 const app = express();
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:4200",
+    origin: [process.env.FRONTEND_URL || "http://localhost:4200"],
     credentials: true,
   }),
 );
+app.use("/api/webhook", webhookRouter); // has to be before express.json() is applied
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

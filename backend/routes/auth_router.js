@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { passport } from "../passport.js";
 import { stripe } from "../stripe.js";
 import { isAuth } from "../middlewares/auth.js";
+import { User } from "../models/users.js";
 
 export const authRouter = express.Router();
 
@@ -30,7 +31,6 @@ authRouter.get(
         userId: req.user.userId,
         name: req.user.name,
         avatar: req.user.avatar,
-        stripeSubscriptionId: req.user.stripeSubscriptionId,
       },
       process.env.JWT_SIGNING_KEY,
       {
@@ -50,8 +50,9 @@ authRouter.get(
 );
 
 authRouter.get("/me", isAuth, async (req, res) => {
-  const subscription = req.user.stripeSubscriptionId
-    ? await stripe.subscriptions.retrieve(req.user.stripeSubscriptionId)
+  const user = await User.findByPk(req.user.userId);
+  const subscription = user.stripeSubscriptionId
+    ? await stripe.subscriptions.retrieve(user.stripeSubscriptionId)
     : null;
 
   res.json({

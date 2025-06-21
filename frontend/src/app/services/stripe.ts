@@ -21,6 +21,17 @@ export class StripeService {
     return (window as any).stripe(environment.stripePublishableKey);
   }
 
+  redirectToCheckout(lookup: string): void {
+    this.createStripeSession(lookup).subscribe({
+      next: (response) => {
+        window.location.href = response.url;
+      },
+      error: (error) => {
+        console.error("Error creating Stripe session:", error);
+      },
+    });
+  }
+
   createStripeSession(lookup: string): Observable<{ url: string }> {
     return this.http.post<{ url: string }>(
       `${environment.apiUrl}/checkout`,

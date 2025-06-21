@@ -45,7 +45,12 @@ checkoutRouter.post("/", isAuth, async (req, res) => {
   const session = await stripe.checkout.sessions.create({
     customer: customer.id,
     billing_address_collection: "auto",
-    line_items: [prices.data[0].id],
+    line_items: [
+      {
+        price: prices.data[0].id,
+        quantity: 1,
+      },
+    ],
     mode: "subscription",
     success_url: `${process.env.FRONTEND_URL}`,
     cancel_url: `${process.env.FRONTEND_URL}`,
@@ -58,5 +63,3 @@ checkoutRouter.post("/", isAuth, async (req, res) => {
     url: session.url,
   });
 });
-
-checkoutRouter.post("/stripe/webhook", async (req, res) => {});
