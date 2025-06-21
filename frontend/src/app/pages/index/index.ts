@@ -14,7 +14,7 @@ export class Index {
 
   constructor(private authService: AuthService) {
     this.authService.getUser().subscribe((user) => {
-      this.user = user;
+      this.user = user!;
     });
   }
 
