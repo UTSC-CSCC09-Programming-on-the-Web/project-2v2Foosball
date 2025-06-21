@@ -3,7 +3,7 @@
 ## Frontend
 Install the Angular CLI globally if you haven't already:
 ```
-npm install -g @angular/cli
+npm install -g @angular/cli@19
 ```
 Then, `cd frontend`, install the dependencies and run the development server:
 ```bash
@@ -21,6 +21,7 @@ You will require to have a `env` file in the `backend` directory with the follow
 
 ```bash
 FRONTEND_URL=http://localhost:4200
+BACKEND_URL=http://localhost:3000
 PORT=3000
 OAUTH_GITHUB_CLIENT_ID=your_github_client_id
 OAUTH_GITHUB_CLIENT_SECRET=your_github_client_secret
