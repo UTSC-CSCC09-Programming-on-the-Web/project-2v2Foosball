@@ -1,9 +1,9 @@
 <app-header (logout)="logout()" [user]="user"></app-header>
-<button *ngIf="!isQueued" (click)="addToQueue()" class="btn btn-primary">
-  Add to Queue
+<button *ngIf="!isQueued" (click)="addToQueue(user)" class="btn btn-play">
+  Play
 </button>
-<button *ngIf="isQueued" (click)="removeFromQueue()" class="btn btn-secondary">
-  Remove from Queue
+<button *ngIf="isQueued" (click)="removeFromQueue(user)" class="btn btn-cancel">
+  Cancel
   <div class="container">
     <div class="queue"></div>
   </div>

@@ -17,32 +17,20 @@ export class Api {
   ) {}
 
   // Add User to Queue
-  addToQueue(): Observable<User> {
-    return this.authService.getUser().pipe(
-      switchMap((user) => {
-        return this.http.post<User>(
-          `${environment.apiUrl}/queue/add`,
-          {
-            user: user,
-          },
-          { withCredentials: true },
-        );
-      }),
+  addToQueue(user: User): Observable<User> {
+    return this.http.post<User>(
+      `${environment.apiUrl}/queue/add`,
+      { user },
+      { withCredentials: true },
     );
   }
 
   // remove User from Queue
-  removeFromQueue(): Observable<User> {
-    return this.authService.getUser().pipe(
-      switchMap((user) => {
-        return this.http.post<User>(
-          `${environment.apiUrl}/queue/remove`,
-          {
-            user: user,
-          },
-          { withCredentials: true },
-        );
-      }),
+  removeFromQueue(user: User): Observable<User> {
+    return this.http.post<User>(
+      `${environment.apiUrl}/queue/remove`,
+      { user },
+      { withCredentials: true },
     );
   }
 

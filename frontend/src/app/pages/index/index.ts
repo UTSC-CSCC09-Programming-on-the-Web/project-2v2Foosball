@@ -3,8 +3,8 @@ import { Header } from '../../components/header/header';
 import { AuthService } from '../../services/auth';
 import { Api } from '../../services/api';
 import { User } from '../../types/user';
-// import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-index',
   imports: [Header, CommonModule],
@@ -18,29 +18,28 @@ export class Index implements OnInit {
   constructor(
     private authService: AuthService,
     private api: Api,
-  ) {
-    this.authService.getUser().subscribe((user) => {
-      this.user = user!;
-    });
-  }
+  ) {}
 
   ngOnInit(): void {
-    this.checkUserInQueue();
+    this.authService.getUser().subscribe((user) => {
+      this.user = user!;
+      this.checkUserInQueue();
+    });
   }
 
   logout(): void {
     this.authService.logout();
   }
 
-  addToQueue(): void {
-    this.api.addToQueue().subscribe((user) => {
-      this.checkUserInQueue();
-    });
+  addToQueue(user: User): void {
+    this.api.addToQueue(user).subscribe(() => {
+      this.isQueued = true;
+    });  
   }
 
-  removeFromQueue(): void {
-    this.api.removeFromQueue().subscribe((user) => {
-      this.checkUserInQueue();
+  removeFromQueue(user: User): void {
+    this.api.removeFromQueue(user).subscribe(() => {
+      this.isQueued = false;
     });
   }
 
