@@ -24,13 +24,23 @@ webhookRouter.post(
 
     console.log(`Received event: ${event.id} of type ${event.type}`);
 
+    let userId;
+    let user;
     switch (event.type) {
       case "checkout.session.completed":
-        const session = event.data.object;
-        const userId = session.metadata.userId;
-        const user = await User.findByPk(userId);
-        user.stripeSubscriptionId = session.subscription;
+        userId = event.data.object.metadata.userId;
+        user = await User.findByPk(userId);
+        user.stripeSubscriptionId = event.data.object.subscription;
         await user.save();
+        break;
+      case "customer.deleted":
+        userId = event.data.object.metadata.userId;
+        user = await User.findByPk(userId);
+        if (user) {
+          user.stripeCustomerId = null;
+          user.stripeSubscriptionId = null;
+          await user.save();
+        }
         break;
       default:
         console.log(`Unhandled event type ${event.type}`);
