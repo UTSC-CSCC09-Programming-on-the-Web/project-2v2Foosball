@@ -1,0 +1,13 @@
+<div class="queue-container">
+  <button *ngIf="!isQueued" (click)="onAddToQueue()" class="btn btn-play">
+    Play
+  </button>
+  <button *ngIf="isQueued" (click)="onRemoveFromQueue()" class="btn btn-cancel">
+    Cancel
+  </button>
+  <div class="queue-list">
+    <div *ngFor="let u of queue; let i = index" class="queue-user">
+      {{ i + 1 }}. {{ u.name }}
+    </div>
+  </div>
+</div>

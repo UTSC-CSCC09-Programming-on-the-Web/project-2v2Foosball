@@ -1,8 +1,8 @@
-import { CanActivateFn, Router } from "@angular/router";
-import { AuthService } from "../services/auth";
-import { inject } from "@angular/core";
-import { map, catchError } from "rxjs/operators";
-import { asyncScheduler, scheduled } from "rxjs";
+import { CanActivateFn, Router } from '@angular/router';
+import { AuthService } from '../services/auth';
+import { inject } from '@angular/core';
+import { map, catchError } from 'rxjs/operators';
+import { asyncScheduler, scheduled } from 'rxjs';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
@@ -13,7 +13,7 @@ export const authGuard: CanActivateFn = (route, state) => {
       return true;
     }),
     catchError((err) => {
-      return scheduled([router.createUrlTree(["/login"])], asyncScheduler);
+      return scheduled([router.createUrlTree(['/login'])], asyncScheduler);
     }),
   );
 };
