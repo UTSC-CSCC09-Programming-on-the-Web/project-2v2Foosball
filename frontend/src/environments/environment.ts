@@ -3,5 +3,6 @@ export const environment = {
   production: true,
   stripePublishableKey: '',
   apiUrl: '',
+  socketUrl: '',
   name: 'Foosball',
 };

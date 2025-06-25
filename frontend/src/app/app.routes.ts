@@ -16,8 +16,7 @@ export const routes: Routes = [
     component: Login,
     canActivate: [loginGuard],
   },
-  {
-    path: 'membership',
+  {    path: 'membership',
     component: Membership,
     canActivate: [authGuard],
   },
