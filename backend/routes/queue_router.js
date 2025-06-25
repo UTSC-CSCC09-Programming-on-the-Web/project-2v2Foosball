@@ -10,7 +10,7 @@ const game_size = 4; // Number of players needed to create a game
 //  Add a user
 queueRouter.post("/add", isAuth, (req, res) => {
   const user = req.user;
-  if(queue.find((u) => u.userId === user.userId)) {
+  if (queue.find((u) => u.userId === user.userId)) {
     console.log("User already in queue:", user);
     return res.status(409).json({ message: "User already in queue" });
   }
@@ -24,7 +24,7 @@ queueRouter.post("/add", isAuth, (req, res) => {
 queueRouter.post("/remove", isAuth, (req, res) => {
   const user = req.user;
   const index = queue.findIndex((u) => u.userId === user.userId);
-  
+
   if (index === -1) {
     return res.status(404).json({ message: "User not found in queue" });
   }
@@ -45,7 +45,6 @@ queueRouter.get("/userInQueue", isAuth, (req, res) => {
   const isInQueue = queue.some((u) => u.userId === user.userId);
   return res.status(200).json({ isInQueue });
 });
-
 
 // Create a game with the first 4 players in the queue
 queueRouter.post("/create-game", isAuth, (req, res) => {

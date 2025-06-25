@@ -1,10 +1,14 @@
 <app-header (logout)="logout()" [user]="user"></app-header>
-<button *ngIf="!isQueued" (click)="addToQueue(user)" class="btn btn-play">
-  Play
-</button>
-<button *ngIf="isQueued" (click)="removeFromQueue(user)" class="btn btn-cancel">
-  Cancel
-  <div class="container">
-    <div class="queue"></div>
-  </div>
-</button>
+<div class="row">
+  <app-queue
+    [user]="user"
+    [isQueued]="isQueued"
+    [queue]="queue"
+    (addToQueue)="addToQueue()"
+    (removeFromQueue)="removeFromQueue()"
+    class="col-2"
+  ></app-queue>
+
+  <div class="col-8">This is the game section</div>
+  <div class="col-2">This will be the replay section.</div>
+</div>

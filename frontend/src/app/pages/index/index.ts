@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Header } from '../../components/header/header';
+import { QueueComponent } from '../../components/queue/queue';
 import { AuthService } from '../../services/auth';
 import { Api } from '../../services/api';
 import { User } from '../../types/user';
@@ -7,13 +8,14 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-index',
-  imports: [Header, CommonModule],
+  imports: [Header, CommonModule, QueueComponent],
   templateUrl: './index.html',
   styleUrl: './index.scss',
 })
 export class Index implements OnInit {
   user!: User;
   isQueued: boolean = false;
+  queue: User[] = [];
 
   constructor(
     private authService: AuthService,
@@ -24,6 +26,7 @@ export class Index implements OnInit {
     this.authService.getUser().subscribe((user) => {
       this.user = user!;
       this.checkUserInQueue();
+      this.printQueue();
     });
   }
 
@@ -31,21 +34,23 @@ export class Index implements OnInit {
     this.authService.logout();
   }
 
-  addToQueue(user: User): void {
-    this.api.addToQueue(user).subscribe(() => {
+  addToQueue(): void {
+    this.api.addToQueue(this.user).subscribe(() => {
       this.isQueued = true;
-    });  
+      this.printQueue();
+    });
   }
 
-  removeFromQueue(user: User): void {
-    this.api.removeFromQueue(user).subscribe(() => {
+  removeFromQueue(): void {
+    this.api.removeFromQueue(this.user).subscribe(() => {
       this.isQueued = false;
+      this.printQueue();
     });
   }
 
   printQueue(): void {
     this.api.getQueue().subscribe((response) => {
-      console.log('Current queue:', response.queue);
+      this.queue = response.queue;
     });
   }
 
