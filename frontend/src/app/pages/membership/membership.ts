@@ -1,19 +1,19 @@
-import { Component } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { StripeService } from "../../services/stripe";
-import { AuthService } from "../../services/auth";
-import { Router } from "@angular/router";
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { StripeService } from '../../services/stripe';
+import { AuthService } from '../../services/auth';
+import { Router } from '@angular/router';
 
 @Component({
-  selector: "app-membership",
+  selector: 'app-membership',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: "./membership.html",
-  styleUrls: ["./membership.scss"],
+  templateUrl: './membership.html',
+  styleUrls: ['./membership.scss'],
 })
 export class Membership {
   isLoading = false;
-  selectedPlan: "monthly" | "yearly" | null = null;
+  selectedPlan: 'monthly' | 'yearly' | null = null;
 
   constructor(
     private subscriptionService: StripeService,
@@ -22,21 +22,21 @@ export class Membership {
   ) {}
 
   selectMonthlyPlan(): void {
-    this.selectedPlan = "monthly";
+    this.selectedPlan = 'monthly';
     this.isLoading = true;
 
-    this.subscriptionService.redirectToCheckout("monthly_plan");
+    this.subscriptionService.redirectToCheckout('monthly_plan');
   }
 
   selectYearlyPlan(): void {
-    this.selectedPlan = "yearly";
+    this.selectedPlan = 'yearly';
     this.isLoading = true;
 
-    this.subscriptionService.redirectToCheckout("yearly_plan");
+    this.subscriptionService.redirectToCheckout('yearly_plan');
   }
 
   goBack(): void {
-    this.router.navigate(["/"]);
+    this.router.navigate(['/']);
   }
 
   logout(): void {

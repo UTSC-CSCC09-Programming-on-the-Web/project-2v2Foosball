@@ -1,12 +1,12 @@
-import { Injectable } from "@angular/core";
-import { loadStripe, Stripe } from "@stripe/stripe-js";
-import { environment } from "../../environments/environment";
-import { HttpClient } from "@angular/common/http";
-import { Router } from "@angular/router";
-import { Observable } from "rxjs";
+import { Injectable } from '@angular/core';
+import { loadStripe, Stripe } from '@stripe/stripe-js';
+import { environment } from '../../environments/environment';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class StripeService {
   // stripePromise: Promise<Stripe>;
@@ -27,7 +27,7 @@ export class StripeService {
         window.location.href = response.url;
       },
       error: (error) => {
-        console.error("Error creating Stripe session:", error);
+        console.error('Error creating Stripe session:', error);
       },
     });
   }

@@ -1,13 +1,13 @@
-import { Component } from "@angular/core";
-import { Header } from "../../components/header/header";
-import { AuthService } from "../../services/auth";
-import { User } from "../../types/user";
+import { Component } from '@angular/core';
+import { Header } from '../../components/header/header';
+import { AuthService } from '../../services/auth';
+import { User } from '../../types/user';
 
 @Component({
-  selector: "app-index",
+  selector: 'app-index',
   imports: [Header],
-  templateUrl: "./index.html",
-  styleUrl: "./index.scss",
+  templateUrl: './index.html',
+  styleUrl: './index.scss',
 })
 export class Index {
   user!: User;
