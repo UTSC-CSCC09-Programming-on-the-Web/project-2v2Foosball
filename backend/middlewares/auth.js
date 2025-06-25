@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import { User } from "../models/users.js";
 
-export const isAuth = (req, res, next) => {
+export const isAuth = async (req, res, next) => {
   // Read token from HTTP-only cookie
   const token = req.cookies.authtoken;
 
@@ -12,6 +13,13 @@ export const isAuth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SIGNING_KEY);
+    if (
+      !decoded ||
+      !decoded.userId ||
+      (await User.findByPk(decoded.userId)) === null
+    ) {
+      throw new Error("Invalid token payload");
+    }
     req.user = decoded;
     next();
   } catch (err) {
