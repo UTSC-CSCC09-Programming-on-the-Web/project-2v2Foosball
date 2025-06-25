@@ -4,8 +4,6 @@ export function registerQueueListeners(io) {
     // when someone connects, they are assigned a socket object.
     console.log("a user connected");
 
-    // you can listen to socket object events. For example, this is when
-    // a user disconnects
     socket.on("disconnect", () => {
       console.log("user disconnected");
     });
