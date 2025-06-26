@@ -13,6 +13,15 @@ export const isAuth = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SIGNING_KEY);
+
+    if (
+      process.env.NODE_ENV === "development" &&
+      decoded.userId === "mock-user-id"
+    ) {
+      req.user = decoded;
+      return next();
+    }
+
     if (
       !decoded ||
       !decoded.userId ||

@@ -8,6 +8,26 @@ import { User } from "../models/users.js";
 
 export const authRouter = express.Router();
 
+const MOCK_USER = {
+  userId: "mock-user-id",
+  name: "Mock User",
+  avatar: null,
+};
+
+function signToken(user) {
+  return jwt.sign(
+    {
+      userId: user.userId,
+      name: user.name,
+      avatar: user.avatar,
+    },
+    process.env.JWT_SIGNING_KEY,
+    {
+      expiresIn: "7d",
+    },
+  );
+}
+
 // Route to initiate Github OAuth
 // Frontend redirects to this endpoint
 authRouter.get(
@@ -26,17 +46,7 @@ authRouter.get(
     session: false,
   }),
   async (req, res) => {
-    const token = jwt.sign(
-      {
-        userId: req.user.userId,
-        name: req.user.name,
-        avatar: req.user.avatar,
-      },
-      process.env.JWT_SIGNING_KEY,
-      {
-        expiresIn: "7d",
-      },
-    );
+    const token = signToken(req.user);
     // Set the JWT token in an HTTP-only cookie
     res.cookie("authtoken", token, {
       httpOnly: true,
@@ -49,7 +59,36 @@ authRouter.get(
   },
 );
 
+authRouter.post("/mock", (req, res) => {
+  if (process.env.NODE_ENV !== "development") {
+    return res.status(403).json({ message: "Wrong place." });
+  }
+
+  const token = signToken(MOCK_USER);
+
+  res.cookie("authtoken", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    domain: new URL(process.env.BACKEND_URL).hostname,
+  });
+
+  return res.json({ message: "Mock user logged in successfully" });
+});
+
 authRouter.get("/me", isAuth, async (req, res) => {
+  console.log(req.user.userId, MOCK_USER.userId);
+  if (
+    process.env.NODE_ENV === "development" &&
+    req.user.userId === MOCK_USER.userId
+  ) {
+    return res.json({
+      ...MOCK_USER,
+      active: true, // Mock user is always active
+    });
+  }
+
   const user = await User.findByPk(req.user.userId);
   const subscription = user.stripeSubscriptionId
     ? await stripe.subscriptions.retrieve(user.stripeSubscriptionId)
