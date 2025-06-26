@@ -9,6 +9,15 @@
     class="col-2"
   ></app-queue>
 
-  <div class="col-8">This is the game section</div>
-  <div class="col-2">This will be the replay section.</div>
+  <div class="col-8">
+    <div class="game-section">
+      <div class="scoreboard-container">
+        <app-scoreboard></app-scoreboard>
+      </div>
+      <div class="game-area">
+        <app-game-field></app-game-field>
+      </div>
+    </div>
+  </div>
+  <div class="col-2"></div>
 </div>

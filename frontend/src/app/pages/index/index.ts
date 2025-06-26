@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Header } from '../../components/header/header';
 import { QueueComponent } from '../../components/queue/queue';
+import { ScoreboardComponent } from '../../components/scoreboard/scoreboard';
+import { GameFieldComponent } from '../../components/game-field/game-field';
 import { AuthService } from '../../services/auth';
 import { Api } from '../../services/api';
 import { User } from '../../types/user';
@@ -10,7 +12,13 @@ import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-index',
-  imports: [Header, CommonModule, QueueComponent],
+  imports: [
+    Header,
+    CommonModule,
+    QueueComponent,
+    ScoreboardComponent,
+    GameFieldComponent,
+  ],
   templateUrl: './index.html',
   styleUrl: './index.scss',
 })
