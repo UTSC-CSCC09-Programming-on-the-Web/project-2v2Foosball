@@ -1,6 +1,8 @@
 services:
+  # PostgreSQL Database
   db:
-    image: postgres:latest
+    image: postgres:15
+    container_name: db
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
@@ -9,6 +11,84 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - foosball-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Express Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:3000}
+      PORT: ${PORT:-3000}
+      DATABASE_URL: ${DATABASE_URL:-postgres://admin:password@db:5432/postgres}
+
+      OAUTH_GITHUB_CLIENT_ID: ${OAUTH_GITHUB_CLIENT_ID}
+      OAUTH_GITHUB_CLIENT_SECRET: ${OAUTH_GITHUB_CLIENT_SECRET}
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY}
+
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_MEMBERSHIP_PRODUCT_ID: ${STRIPE_MEMBERSHIP_PRODUCT_ID}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - foosball-network
+    command: npm run start:dev
+
+  # Angular Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "4200:4200"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.angular
+    networks:
+      - foosball-network
+    command:
+      ["npm", "run", "start", "--", "--host", "0.0.0.0", "--port", "4200"]
+
+  # Stripe CLI for webhook testing
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: stripe-cli
+    environment:
+      STRIPE_API_KEY: ${STRIPE_API_KEY}
+    command: >
+      listen
+      --api-key ${STRIPE_API_KEY}
+      --skip-verify
+      --forward-to http://backend:3000/api/webhook/stripe
+    depends_on:
+      - backend
+    networks:
+      - foosball-network
 
 volumes:
   db_data:
+
+networks:
+  foosball-network:
+    driver: bridge

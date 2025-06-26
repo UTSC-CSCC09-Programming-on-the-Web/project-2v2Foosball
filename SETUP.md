@@ -25,6 +25,7 @@ ng serve
 You will require to have a `.env` file in the `backend` directory with the following variables set:
 
 ```bash
+NODE_ENV=development
 FRONTEND_URL=http://localhost:4200
 BACKEND_URL=http://localhost:3000
 PORT=3000
@@ -72,3 +73,7 @@ for the application:
 - Redirect URL: `http://localhost:3000/api/auth/github/callback`
 
 Copy the `Client ID` and `Client Secret` into the `.env` file in the `backend` directory.
+
+## Stripe
+
+Because we use stripe webhooks, we have to install stripe CLI to test the webhooks locally. You can install it by following the instructions here: <https://stripe.com/docs/stripe-cli#install>
