@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Header } from '../../components/header/header';
 import { QueueComponent } from '../../components/queue/queue';
 import { ScoreboardComponent } from '../../components/scoreboard/scoreboard';
@@ -81,5 +81,11 @@ export class Index implements OnInit, OnDestroy {
     this.api.isUserInQueue().subscribe((isInQueue) => {
       this.isQueued = isInQueue;
     });
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent): void {
+    const key = event.key;
+    this.socketService.emit('key.pressed', { key });
   }
 }
