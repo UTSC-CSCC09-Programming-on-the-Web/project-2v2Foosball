@@ -36,9 +36,13 @@ export class Index implements OnInit, OnDestroy {
     this.queueSocketSub = this.socketService
       .listen<User[]>('queue.updated')
       .subscribe((queue) => {
-        console.log(queue);
         this.queue = queue;
       });
+
+    this.socketService.listen('game.joined').subscribe((game) => {
+      // TODO: handle game joined event
+      console.log('Game joined:', game);
+    });
   }
 
   ngOnDestroy(): void {
