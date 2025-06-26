@@ -1,0 +1,46 @@
+{
+  "name": "foosball-backend",
+  "version": "1.0.0",
+  "description": "Backend for CSCC09 foosball project",
+  "homepage": "https://github.com/UTSC-CSCC09-Programming-on-the-Web/project-coffee-enjoyers#readme",
+  "bugs": {
+    "url": "https://github.com/UTSC-CSCC09-Programming-on-the-Web/project-coffee-enjoyers/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UTSC-CSCC09-Programming-on-the-Web/project-coffee-enjoyers.git"
+  },
+  "license": "ISC",
+  "contributors": [
+    "Yong Le He",
+    "Aydin Parekh",
+    "Emin Guliyev"
+  ],
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "format": "prettier --write .",
+    "start:dev": "dotenv -e .env -- nodemon app.js",
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "passport": "^0.7.0",
+    "passport-github2": "^0.1.12",
+    "pg": "^8.16.2",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.7",
+    "socket.io": "^4.8.1",
+    "stripe": "^18.2.1"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^8.0.0",
+    "eslint": "^9.29.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.5.3"
+  }
+}

@@ -1,0 +1,29 @@
+<div class="scoreboard-parent-container">
+  <div class="scoreboard">
+    <div class="score-container">
+      <div class="team-score">
+        <h2>Team One</h2>
+        <div class="score-display">{{ 3 }}</div>
+        <div class="score-progress">
+          <div
+            class="progress-bar"
+            [style.width.%]="(3 / 5 * 100)"
+            [style.background-color]="'white'"
+          ></div>
+        </div>
+      </div>
+      <div class="vs-container">VS</div>
+      <div class="team-score">
+        <h2>Team Two</h2>
+        <div class="score-display">{{ 4 }}</div>
+        <div class="score-progress">
+          <div
+            class="progress-bar"
+            [style.width.%]="(4 / 5 * 100)"
+            [style.background-color]="'white'"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

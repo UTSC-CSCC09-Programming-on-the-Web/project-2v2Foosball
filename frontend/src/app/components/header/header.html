@@ -1,0 +1,20 @@
+<header class="header">
+  <div class="header-container">
+    <h1 class="header-title">Coffee Enjoyers</h1>
+
+    <div class="header-user-actions">
+      <div class="header-user">
+        @if (user && user.avatar) {
+        <img class="user-avatar" [src]="user.avatar" alt="User Avatar" />
+        } @else if (user) {
+        <div class="user-name">{{ user.name }}</div>
+        }
+      </div>
+      <div class="header-actions">
+        <button class="logout-btn" (click)="onLogout()" type="button">
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
