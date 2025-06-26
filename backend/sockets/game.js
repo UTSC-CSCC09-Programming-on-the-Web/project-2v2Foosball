@@ -9,8 +9,8 @@ import { queue } from "../queue_data.js";
 export function registerGameListeners(io, socket) {
   setInterval(() => {
     // Check if there are enough players in the queue to start a game
-    if (queue.length >= 1) {
-      const players = queue.splice(0, 1); // Take the first two players from the queue
+    if (queue.length >= 2) {
+      const players = queue.splice(0, 2); // Take the first two players from the queue
 
       // Create a game object (you can customize this as needed)
       const game = {
