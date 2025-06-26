@@ -53,8 +53,8 @@ export function registerGameListeners(io, socket) {
 
     if (gameId) {
       // Broadcast the key press to all players in the game room
-      socket.to(`game-${gameId}`).emit('key.pressed', { key, userId: socket.id });
-      console.log(`Key pressed in game ${gameId}: ${key}`);
+      io.to(`game-${gameId}`).emit('key.pressed', { key, userId: socket.id }); //Note: io vs socket
+      console.log(`Key pressed in game ${gameId}: ${key} by user ${socket.id}`);
     } else {
       console.log(`Key pressed (${key}) by ${socket.id} but not in a game.`);
     }

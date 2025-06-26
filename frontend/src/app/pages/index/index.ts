@@ -3,6 +3,7 @@ import { Header } from '../../components/header/header';
 import { QueueComponent } from '../../components/queue/queue';
 import { ScoreboardComponent } from '../../components/scoreboard/scoreboard';
 import { GameFieldComponent } from '../../components/game-field/game-field';
+import { PlayerRodComponent } from '../../components/player-rod/player-rod';
 import { AuthService } from '../../services/auth';
 import { Api } from '../../services/api';
 import { User } from '../../types/user';
@@ -18,6 +19,7 @@ import { Subscription } from 'rxjs';
     QueueComponent,
     ScoreboardComponent,
     GameFieldComponent,
+    PlayerRodComponent,
   ],
   templateUrl: './index.html',
   styleUrl: './index.scss',
