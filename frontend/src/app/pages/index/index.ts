@@ -34,10 +34,15 @@ export class Index implements OnInit, OnDestroy {
     });
 
     this.queueSocketSub = this.socketService
-      .listen<User[]>('queue.update')
+      .listen<User[]>('queue.updated')
       .subscribe((queue) => {
         this.queue = queue;
       });
+
+    this.socketService.listen('game.joined').subscribe((game) => {
+      // TODO: handle game joined event
+      console.log('Game joined:', game);
+    });
   }
 
   ngOnDestroy(): void {
@@ -49,15 +54,13 @@ export class Index implements OnInit, OnDestroy {
   }
 
   addToQueue(): void {
-    this.api.addToQueue(this.user).subscribe(() => {
-      this.isQueued = true;
-    });
+    this.socketService.emit('queue.join');
+    this.isQueued = true;
   }
 
   removeFromQueue(): void {
-    this.api.removeFromQueue(this.user).subscribe(() => {
-      this.isQueued = false;
-    });
+    this.socketService.emit('queue.leave');
+    this.isQueued = false;
   }
 
   printQueue(): void {

@@ -29,3 +29,21 @@ export const isAuth = (req, res, next) => {
     });
   }
 };
+
+export const isAuthSocket = (socket, next) => {
+  const token =
+    socket.handshake.auth.token ||
+    socket.handshake.headers.cookie?.split("authtoken=")[1]?.split(";")[0];
+
+  if (!token) {
+    return next(new Error("Authentication error"));
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SIGNING_KEY);
+    socket.user = decoded;
+    next();
+  } catch (err) {
+    next(new Error("Authentication error"));
+  }
+};
