@@ -10,6 +10,7 @@ import { checkoutRouter } from "./routes/checkout_router.js";
 import { webhookRouter } from "./routes/webhook_router.js";
 import { queueRouter } from "./routes/queue_router.js";
 import { registerIOListeners } from "./sockets/index.js";
+import { isAuthSocket } from "./middlewares/auth.js";
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -19,6 +20,9 @@ export const io = new Server(httpServer, {
     credentials: true,
   },
 });
+
+// Socket authentication middleware
+io.use(isAuthSocket);
 registerIOListeners(io);
 
 // Pass io to routers that need it

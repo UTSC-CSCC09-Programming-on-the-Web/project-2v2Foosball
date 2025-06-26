@@ -1,11 +1,27 @@
-export function registerQueueListeners(io) {
-  // listeners
-  io.on("connection", (socket) => {
-    // when someone connects, they are assigned a socket object.
-    console.log("a user connected");
+import { Server, Socket } from "socket.io";
+import { queue } from "../queue_data.js";
 
-    socket.on("disconnect", () => {
-      console.log("user disconnected");
-    });
+/**
+ *
+ * @param {Server} io
+ * @param {Socket} socket
+ */
+export function registerQueueListeners(io, socket) {
+  socket.on("queue.join", () => {
+    // Use a room for the queue so we can broadcast updates only to queue members
+    socket.join("queue");
+    const user = socket.user;
+
+    user.socketId = socket.id;
+    queue.push(user);
+    io.emit("queue.updated", queue);
+  });
+
+  socket.on("queue.leave", () => {
+    const user = socket.user;
+    const index = queue.findIndex((u) => u.userId === user.userId);
+
+    queue.splice(index, 1);
+    io.emit("queue.updated", queue);
   });
 }

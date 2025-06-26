@@ -1,0 +1,91 @@
+.game-field-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin: 20px 5px;
+}
+
+.game-field {
+  position: relative;
+  background: linear-gradient(90deg, #2e7d32 0%, #4caf50 50%, #2e7d32 100%);
+  border: 4px solid #1b5e20;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  width: 100%;
+  height: 500px;
+}
+
+.center-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #fff;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.center-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.goal-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #fff;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.goal-line.goal-line-left {
+  left: 2.5%;
+}
+
+.goal-line.goal-line-right {
+  right: 2.5%;
+}
+
+.goal-net {
+  position: absolute;
+  top: 30%;
+  bottom: 30%;
+  width: 2.5%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid #fff;
+}
+
+.goal-net.goal-net-left {
+  left: 0;
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+}
+.goal-net.goal-net-right {
+  right: 0;
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+}
+
+.ball {
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  z-index: 15;
+
+  height: 10px;
+  width: 10px;
+  left: 35%;
+  top: 55%;
+}

@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Header } from '../../components/header/header';
 import { QueueComponent } from '../../components/queue/queue';
+import { ScoreboardComponent } from '../../components/scoreboard/scoreboard';
+import { GameFieldComponent } from '../../components/game-field/game-field';
 import { AuthService } from '../../services/auth';
 import { Api } from '../../services/api';
 import { User } from '../../types/user';
@@ -10,7 +12,13 @@ import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-index',
-  imports: [Header, CommonModule, QueueComponent],
+  imports: [
+    Header,
+    CommonModule,
+    QueueComponent,
+    ScoreboardComponent,
+    GameFieldComponent,
+  ],
   templateUrl: './index.html',
   styleUrl: './index.scss',
 })
@@ -34,10 +42,15 @@ export class Index implements OnInit, OnDestroy {
     });
 
     this.queueSocketSub = this.socketService
-      .listen<User[]>('queue.update')
+      .listen<User[]>('queue.updated')
       .subscribe((queue) => {
         this.queue = queue;
       });
+
+    this.socketService.listen('game.joined').subscribe((game) => {
+      // TODO: handle game joined event
+      console.log('Game joined:', game);
+    });
   }
 
   ngOnDestroy(): void {
@@ -49,15 +62,13 @@ export class Index implements OnInit, OnDestroy {
   }
 
   addToQueue(): void {
-    this.api.addToQueue(this.user).subscribe(() => {
-      this.isQueued = true;
-    });
+    this.socketService.emit('queue.join');
+    this.isQueued = true;
   }
 
   removeFromQueue(): void {
-    this.api.removeFromQueue(this.user).subscribe(() => {
-      this.isQueued = false;
-    });
+    this.socketService.emit('queue.leave');
+    this.isQueued = false;
   }
 
   printQueue(): void {

@@ -11,7 +11,7 @@ export class SocketService {
 
   constructor() {
     console.log('Connecting to Socket.IO at:', environment.socketUrl);
-    this.socket = io(environment.socketUrl); // Connect to root URL for Socket.IO
+    this.socket = io(environment.socketUrl, { withCredentials: true }); // Connect to root URL for Socket.IO
 
     this.socket.on('connect', () => {
       console.log('Socket.IO connected successfully');
