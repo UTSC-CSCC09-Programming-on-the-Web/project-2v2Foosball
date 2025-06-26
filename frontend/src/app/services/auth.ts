@@ -23,10 +23,19 @@ export class AuthService {
     window.location.href = `${environment.apiUrl}/auth/github`;
   }
 
+  mockLogin(): Observable<any> {
+    return this.http.post(
+      `${environment.apiUrl}/auth/mock`,
+      {},
+      { withCredentials: true },
+    );
+  }
+
   logout(): void {
     this.http
       .post(`${environment.apiUrl}/auth/logout`, {}, { withCredentials: true })
       .subscribe(() => {
+        this.user = null;
         this.router.navigate(['/login']);
       });
   }

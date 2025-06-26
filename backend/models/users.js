@@ -13,6 +13,13 @@ export const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        isEmail: true,
+      },
+    },
     avatar: {
       type: DataTypes.STRING,
     },
@@ -24,6 +31,14 @@ export const User = sequelize.define(
     providerUserId: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    stripeCustomerId: {
+      type: DataTypes.STRING,
+      unique: true,
+    },
+    stripeSubscriptionId: {
+      type: DataTypes.STRING,
+      unique: true,
     },
   },
   {

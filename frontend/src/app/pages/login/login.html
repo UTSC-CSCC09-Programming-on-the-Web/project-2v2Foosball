@@ -31,6 +31,12 @@
           }
         </div>
       </button>
+
+      @if (isMockEnv) {
+      <button class="mock-login-btn" (click)="onMockLogin()" type="button">
+        <span>Continue with Mock Login</span>
+      </button>
+      }
     </div>
   </div>
 </div>
