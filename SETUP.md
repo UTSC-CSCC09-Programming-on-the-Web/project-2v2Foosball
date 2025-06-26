@@ -57,7 +57,7 @@ npm run start:dev
 To run the database, you will need to have Docker installed. Then, run this in the root directory:
 
 ```bash
-docker compose up -d
+docker compose up db -d
 ```
 
 And the database will be available at `localhost:5432` with the username `admin` and password `password`.
