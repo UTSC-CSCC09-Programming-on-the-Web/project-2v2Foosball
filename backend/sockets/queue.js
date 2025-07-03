@@ -1,5 +1,5 @@
 import { Server, Socket } from "socket.io";
-import { queue } from "../queue_data.js";
+import { queue } from "../data/queue_data.js";
 
 /**
  *
