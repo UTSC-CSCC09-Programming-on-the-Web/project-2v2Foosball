@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/users.js";
+import { MOCK_USER } from "../data/mock.js";
 
 export const isAuth = async (req, res, next) => {
   // Read token from HTTP-only cookie
@@ -16,7 +17,7 @@ export const isAuth = async (req, res, next) => {
 
     if (
       process.env.NODE_ENV === "development" &&
-      decoded.userId === "mock-user-id"
+      decoded.userId === MOCK_USER.userId
     ) {
       req.user = decoded;
       return next();
