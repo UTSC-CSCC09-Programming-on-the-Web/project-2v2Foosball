@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import { registerQueueListeners } from "./queue.js";
 import { registerGameListeners } from "./game.js";
 import { Player } from "../models/players.js";
+import { userToGameMap } from "../data/game_data.js";
 
 /**
  *
@@ -16,6 +17,7 @@ export function registerIOListeners(io) {
     // Player reconnection
     Player.findByPk(socket.user.userId).then((player) => {
       if (player) {
+        userToGameMap.set(player.userId, player.gameId);
         socket.join(`game-${player.gameId}`);
         io.to(socket.id).emit("game.joined", player.gameId);
         console.log(`User ${socket.user.userId} joined game ${player.gameId}`);

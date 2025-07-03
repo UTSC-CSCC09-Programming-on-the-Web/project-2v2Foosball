@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io";
 import { queue } from "../data/queue_data.js";
 import { Game } from "../models/game.js";
 import { Player } from "../models/players.js";
+import { userToGameMap } from "../data/game_data.js";
 
 /**
  *
@@ -22,10 +23,10 @@ export function registerGameListeners(io, socket) {
           userId: player.userId,
           gameId: game.gameId,
         });
-      });
 
-      // Move players to a game room
-      players.forEach((player) => {
+        userToGameMap.set(player.userId, game.gameId);
+
+        // Move players to a game room
         io.sockets.sockets.get(player.socketId).join(`game-${game.gameId}`);
         io.to(player.socketId).emit("game.joined", game.gameId);
       });
@@ -42,17 +43,15 @@ export function registerGameListeners(io, socket) {
 
   socket.on("key.pressed", async (data) => {
     const { key } = data;
-    const player = await Player.findByPk(socket.user.userId);
+    const gameId = userToGameMap.get(socket.user.userId);
 
-    if (player) {
+    if (gameId) {
       // Broadcast the key press to all players in the game room
-      io.to(`game-${player.gameId}`).emit("key.pressed", {
+      io.to(`game-${gameId}`).emit("key.pressed", {
         key,
         userId: socket.id,
       }); //Note: io vs socket
-      console.log(
-        `Key pressed in game ${player.gameId}: ${key} by user ${socket.id}`,
-      );
+      console.log(`Key pressed in game ${gameId}: ${key} by user ${socket.id}`);
     } else {
       console.log(`Key pressed (${key}) by ${socket.id} but not in a game.`);
     }
