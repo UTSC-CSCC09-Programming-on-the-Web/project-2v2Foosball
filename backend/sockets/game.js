@@ -3,9 +3,6 @@ import { queue } from "../data/queue_data.js";
 import { Game } from "../models/game.js";
 import { Player } from "../models/players.js";
 
-// Map to keep track of which socket is in which game
-const socketToGameMap = new Map();
-
 /**
  *
  * @param {Server} io
@@ -30,7 +27,7 @@ export function registerGameListeners(io, socket) {
       // Move players to a game room
       players.forEach((player) => {
         io.sockets.sockets.get(player.socketId).join(`game-${game.gameId}`);
-        io.to(player.socketId).emit("game.joined", game);
+        io.to(player.socketId).emit("game.joined", game.gameId);
       });
 
       console.log(
@@ -43,14 +40,19 @@ export function registerGameListeners(io, socket) {
   // Make sure for game events, only broadcast to players in the game room
   // ie: socket.to(`game-${game.id}`).emit("event.name", data);
 
-  socket.on("key.pressed", (data) => {
+  socket.on("key.pressed", async (data) => {
     const { key } = data;
-    const gameId = socketToGameMap.get(socket.id);
+    const player = await Player.findByPk(socket.user.userId);
 
-    if (gameId) {
+    if (player) {
       // Broadcast the key press to all players in the game room
-      io.to(`game-${gameId}`).emit("key.pressed", { key, userId: socket.id }); //Note: io vs socket
-      console.log(`Key pressed in game ${gameId}: ${key} by user ${socket.id}`);
+      io.to(`game-${player.gameId}`).emit("key.pressed", {
+        key,
+        userId: socket.id,
+      }); //Note: io vs socket
+      console.log(
+        `Key pressed in game ${player.gameId}: ${key} by user ${socket.id}`,
+      );
     } else {
       console.log(`Key pressed (${key}) by ${socket.id} but not in a game.`);
     }

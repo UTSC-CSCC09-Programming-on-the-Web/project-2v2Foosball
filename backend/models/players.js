@@ -1,18 +1,47 @@
 import { sequelize } from "../datasource.js";
-import { DataTypes } from "sequelize";
+import { DataTypes, ValidationError } from "sequelize";
 import { User } from "./users.js";
 import { Game } from "./game.js";
 
-export const Player = sequelize.define("player", {
-  userId: {
-    type: DataTypes.UUID,
-    primaryKey: true,
+export const Player = sequelize.define(
+  "player",
+  {
+    userId: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+    },
+    gameId: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+    },
   },
-  gameId: {
-    type: DataTypes.UUID,
-    primaryKey: true,
+  {
+    hooks: {
+      beforeCreate: async (player, options) => {
+        // Check if user already has a game in progress
+        const existingPlayer = await Player.findOne({
+          where: {
+            userId: player.userId,
+          },
+          include: [
+            {
+              model: Game,
+              where: {
+                status: "in_progress",
+              },
+            },
+          ],
+        });
+
+        if (existingPlayer) {
+          throw new ValidationError(
+            "Player can only have one game in progress at a time",
+          );
+        }
+      },
+    },
   },
-});
+);
 
 Player.belongsTo(User, {
   foreignKey: {
