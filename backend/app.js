@@ -12,6 +12,8 @@ import { queueRouter } from "./routes/queue_router.js";
 import { registerIOListeners } from "./sockets/index.js";
 import { isAuthSocket } from "./middlewares/auth.js";
 
+import { setupMockUsers } from "./data/mock.js";
+
 const app = express();
 const httpServer = http.createServer(app);
 export const io = new Server(httpServer, {
@@ -48,6 +50,10 @@ try {
   console.log("Connection has been established successfully.");
 } catch (error) {
   console.error("Unable to connect to the database:", error);
+}
+// Insert mock users
+if (process.env.NODE_ENV === "development") {
+  setupMockUsers();
 }
 
 // Routes here

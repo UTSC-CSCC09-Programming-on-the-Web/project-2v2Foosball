@@ -5,14 +5,9 @@ import { passport } from "../passport.js";
 import { stripe } from "../stripe.js";
 import { isAuth } from "../middlewares/auth.js";
 import { User } from "../models/users.js";
+import { MOCK_USER } from "../data/mock.js";
 
 export const authRouter = express.Router();
-
-const MOCK_USER = {
-  userId: "mock-user-id",
-  name: "Mock User",
-  avatar: null,
-};
 
 function signToken(user) {
   return jwt.sign(

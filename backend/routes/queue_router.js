@@ -1,5 +1,5 @@
 import { isAuth } from "../middlewares/auth.js";
-import { queue } from "../queue_data.js";
+import { queue } from "../data/queue_data.js";
 import { Router } from "express";
 
 export const queueRouter = Router();

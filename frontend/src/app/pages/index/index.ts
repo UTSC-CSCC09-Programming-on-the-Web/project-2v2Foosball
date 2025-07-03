@@ -27,6 +27,7 @@ import { Subscription } from 'rxjs';
 export class Index implements OnInit, OnDestroy {
   user!: User;
   isQueued: boolean = false;
+  inGame: boolean = false;
   queue: User[] = [];
   private queueSocketSub: Subscription | null = null;
 
@@ -51,6 +52,8 @@ export class Index implements OnInit, OnDestroy {
 
     this.socketService.listen('game.joined').subscribe((game) => {
       // TODO: handle game joined event
+      this.isQueued = false;
+      this.inGame = true;
       console.log('Game joined:', game);
     });
   }
