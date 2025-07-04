@@ -9,9 +9,12 @@ import { authRouter } from "./routes/auth_router.js";
 import { checkoutRouter } from "./routes/checkout_router.js";
 import { webhookRouter } from "./routes/webhook_router.js";
 import { queueRouter } from "./routes/queue_router.js";
+import { gameRouter } from "./routes/game_router.js";
 import { registerIOListeners } from "./sockets/index.js";
 import { isAuthSocket } from "./middlewares/auth.js";
 
+import { Game } from "./models/game.js";
+import { addNewGame } from "./data/game_data.js";
 import { setupMockUsers } from "./data/mock.js";
 
 const app = express();
@@ -55,11 +58,24 @@ try {
 if (process.env.NODE_ENV === "development") {
   setupMockUsers();
 }
+// When the server is restarted, the array of ongoing games is cleared.
+// TODO: After replaying is implemented, we should have a way to restore the game states.
+Game.findAll({
+  where: {
+    status: "in_progress",
+  },
+}).then((gs) => {
+  gs.forEach((game) => {
+    console.log("Restoring game:", game.dataValues.gameId);
+    addNewGame(game.dataValues.gameId);
+  });
+});
 
 // Routes here
 app.use("/api/auth", authRouter);
 app.use("/api/checkout", checkoutRouter);
 app.use("/api/queue", queueRouter);
+app.use("/api/game", gameRouter);
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => console.log("Server running"));

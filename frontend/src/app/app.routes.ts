@@ -4,6 +4,7 @@ import { Index } from './pages/index';
 import { authGuard } from './guards/auth-guard';
 import { Membership } from './pages/membership/membership';
 import { loginGuard } from './guards/login-guard';
+import { Game } from './pages/game/game';
 
 export const routes: Routes = [
   {
@@ -16,8 +17,14 @@ export const routes: Routes = [
     component: Login,
     canActivate: [loginGuard],
   },
-  {    path: 'membership',
+  {
+    path: 'membership',
     component: Membership,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'game',
+    component: Game,
     canActivate: [authGuard],
   },
   {

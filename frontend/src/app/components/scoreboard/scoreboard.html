@@ -2,24 +2,24 @@
   <div class="scoreboard">
     <div class="score-container">
       <div class="team-score">
-        <h2>Team One</h2>
-        <div class="score-display">{{ 3 }}</div>
+        <h2>Team 1</h2>
+        <div class="score-display">{{ score.team1 }}</div>
         <div class="score-progress">
           <div
             class="progress-bar"
-            [style.width.%]="(3 / 5 * 100)"
+            [style.width.%]="(score.team1 / maxScore * 100)"
             [style.background-color]="'white'"
           ></div>
         </div>
       </div>
       <div class="vs-container">VS</div>
       <div class="team-score">
-        <h2>Team Two</h2>
-        <div class="score-display">{{ 4 }}</div>
+        <h2>Team 2</h2>
+        <div class="score-display">{{ score.team2 }}</div>
         <div class="score-progress">
           <div
             class="progress-bar"
-            [style.width.%]="(4 / 5 * 100)"
+            [style.width.%]="(score.team1 / maxScore * 100)"
             [style.background-color]="'white'"
           ></div>
         </div>

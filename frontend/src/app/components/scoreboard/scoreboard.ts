@@ -9,5 +9,8 @@ import { CommonModule } from '@angular/common';
   styleUrl: './scoreboard.scss',
 })
 export class ScoreboardComponent {
+  @Input({ required: true }) score!: { team1: number; team2: number };
+  @Input() maxScore: number = 5;
+
   constructor() {}
 }

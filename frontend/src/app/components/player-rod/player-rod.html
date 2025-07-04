@@ -1,9 +1,0 @@
-<div class="rod-container" [style.transform]="'translateY(' + rodOffsetY + 'px)'">
-  <div class="rod" [style.height.px]="rodHeight">
-    <div
-      class="figure"
-      *ngFor="let position of getPositions()"
-      [style.top.%]="position"
-    ></div>
-  </div>
-</div>

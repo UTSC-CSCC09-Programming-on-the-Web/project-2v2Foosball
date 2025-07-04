@@ -14,6 +14,16 @@ export const Player = sequelize.define(
       type: DataTypes.UUID,
       primaryKey: true,
     },
+    team: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        isIn: {
+          args: [[1, 2]],
+          msg: "Team must be either 1 or 2",
+        },
+      },
+    },
   },
   {
     hooks: {

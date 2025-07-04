@@ -3,6 +3,7 @@ import { registerQueueListeners } from "./queue.js";
 import { registerGameListeners } from "./game.js";
 import { Player } from "../models/players.js";
 import { userToGameMap } from "../data/game_data.js";
+import { Game } from "../models/game.js";
 
 /**
  *
@@ -15,12 +16,26 @@ export function registerIOListeners(io) {
     console.log("a user connected");
 
     // Player reconnection
-    Player.findByPk(socket.user.userId).then((player) => {
+    Player.findOne({
+      where: {
+        userId: socket.user.userId,
+      },
+      include: [
+        {
+          model: Game,
+          where: {
+            status: "in_progress",
+          },
+        },
+      ],
+    }).then((player) => {
       if (player) {
         userToGameMap.set(player.userId, player.gameId);
         socket.join(`game-${player.gameId}`);
         io.to(socket.id).emit("game.joined", player.gameId);
-        console.log(`User ${socket.user.userId} joined game ${player.gameId}`);
+        console.log(
+          `User ${socket.user.userId} re-joined game ${player.gameId}`,
+        );
       } else {
         console.log(`User ${socket.user.userId} is not in a game.`);
       }

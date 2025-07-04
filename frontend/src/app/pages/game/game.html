@@ -1,0 +1,19 @@
+<div class="col-8">
+  <div class="game-section">
+    <div class="scoreboard-container">
+      <app-scoreboard [score]="score" [maxScore]="config.maxScore || 5">
+      </app-scoreboard>
+    </div>
+    <div class="game-area">
+      <app-game-field
+        [ball]="ball"
+        [rods]="rods"
+        [config]="config"
+        [team]="team"
+        [activeRod]="activeRod"
+        (keystate)="onKeyPresses($event)"
+      >
+      </app-game-field>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,5 @@
 <app-header (logout)="logout()" [user]="user"></app-header>
 <div class="row">
-  @if (!inGame) {
   <app-queue
     [user]="user"
     [isQueued]="isQueued"
@@ -9,19 +8,4 @@
     (removeFromQueue)="removeFromQueue()"
     class="col-2"
   ></app-queue>
-  }
-  <div class="col-8">
-    <div class="game-section">
-      <div class="scoreboard-container">
-        <app-scoreboard></app-scoreboard>
-      </div>
-      <div class="game-area">
-        <app-game-field></app-game-field>
-      </div>
-      <div class="player-rod-container">
-        <app-player-rod [figureCount]="5" [rodHeight]="300"></app-player-rod>
-      </div>
-    </div>
-  </div>
-  <div class="col-2"></div>
 </div>
