@@ -14,6 +14,11 @@ function gameFunction(gameId) {
     return;
   }
 
+  updateGamePhysics(game);
+  checkBounds(game);
+  checkCollisions(game);
+  checkGoals(game);
+
   updateRods(game, 1);
   updateRods(game, 2);
 }
@@ -66,6 +71,101 @@ function updateRods(game, team) {
   });
 }
 
+function updateGamePhysics(game) {
+  const ball = game.state.ball;
+  // Update ball position based on its velocity
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  // // Friction
+  // ball.vx *= 0.99;
+  // ball.vy *= 0.99;
+
+  // // Stop micro-movements
+  // if (Math.abs(ball.vx) < 0.05) {
+  //   ball.vx = 0;
+  // }
+  // if (Math.abs(ball.vy) < 0.05) {
+  //   ball.vy = 0;
+  // }
+}
+
+function checkBounds(game) {
+  const ball = game.state.ball;
+  const { fieldWidth, fieldHeight, ballRadius } = game.config;
+
+  const reflect = (pos, vel, min, max) => {
+    if (pos < min + ballRadius) {
+      pos = min + ballRadius;
+      vel = Math.abs(vel);
+    } else if (pos > max - ballRadius) {
+      pos = max - ballRadius;
+      vel = -Math.abs(vel);
+    }
+    return { pos, vel };
+  }
+
+  const xCheck = reflect(ball.x, ball.vx, ballRadius, fieldWidth);
+  const yCheck = reflect(ball.y, ball.vy, ballRadius, fieldHeight);
+
+  ball.x = xCheck.pos;
+  ball.vx = xCheck.vel;
+  ball.y = yCheck.pos;
+  ball.vy = yCheck.vel;
+}
+
+function checkCollisions(game) {
+  const ball = game.state.ball;
+  // If the ball is on the left side of the field, check team1 rods
+  if (ball.x < game.config.fieldWidth / 2) {
+    game.state.team1.rods.forEach((rod) => {
+      rod.figures.forEach((figure) => {
+        const dx = ball.x - rod.x;
+        const dy = ball.y - figure.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < game.config.ballRadius + game.config.figureRadius) {
+          // Ball hits the figure (circle-circle collision)
+          const angle = Math.atan2(dy, dx);
+          const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+          ball.vx = Math.abs(speed * Math.cos(angle));
+          ball.vy = speed * Math.sin(angle);
+          // Move ball out of collision
+          const overlap = game.config.ballRadius + game.config.figureRadius - distance;
+          ball.x += overlap * Math.cos(angle);
+          ball.y += overlap * Math.sin(angle);
+        }
+      });
+    });
+  } else {
+    game.state.team2.rods.forEach((rod) => {
+      rod.figures.forEach((figure) => {
+        const dx = ball.x - rod.x;
+        const dy = ball.y - figure.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < game.config.ballRadius + game.config.figureRadius) {
+          // Ball hits the figure (circle-circle collision)
+          const angle = Math.atan2(dy, dx);
+          const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+          ball.vx = -Math.abs(speed * Math.cos(angle));
+          ball.vy = speed * Math.sin(angle);
+          // Move ball out of collision
+          const overlap = game.config.ballRadius + game.config.figureRadius - distance;
+          ball.x += overlap * Math.cos(angle);
+          ball.y += overlap * Math.sin(angle);
+        }
+      });
+    });
+  }
+}
+
+function checkGoals(game) {
+  // TODO: Check if the ball is in the goal area and update scores
+}
+
+function resetBall(game) {
+  // TODO: Reset ball properly/game state properly
+}
+
 export function addNewGame(gameId) {
   if (games.has(gameId)) {
     console.error(`Game with ID ${gameId} already exists.`);
@@ -97,7 +197,7 @@ export const GAME_DEFAULTS = {
     ball: {
       x: 600,
       y: 250,
-      vx: 0,
+      vx: -5,
       vy: 0,
     },
     team1: {
