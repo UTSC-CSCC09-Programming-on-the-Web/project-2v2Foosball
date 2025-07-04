@@ -4,8 +4,6 @@ import { Router } from "express";
 
 export const queueRouter = Router();
 
-const game_size = 4; // Number of players needed to create a game
-
 // Get the queue
 queueRouter.get("/", isAuth, (req, res) => {
   res.status(200).json({ queue });

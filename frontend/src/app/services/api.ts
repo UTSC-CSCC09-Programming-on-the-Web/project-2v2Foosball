@@ -5,6 +5,7 @@ import { Observable, switchMap } from 'rxjs';
 import { User } from '../types/user';
 import { AuthService } from './auth';
 import { environment } from '../../environments/environment';
+import { GameInit } from '../types/game';
 
 @Injectable({
   providedIn: 'root',
@@ -50,5 +51,9 @@ export class Api {
       .pipe(switchMap((response) => [response.isInQueue]));
   }
 
-  // Create game
+  getGame(): Observable<GameInit> {
+    return this.http.get<GameInit>(`${environment.apiUrl}/game`, {
+      withCredentials: true,
+    });
+  }
 }
