@@ -19,6 +19,21 @@ import {
   GameConfig,
 } from '../../types/game';
 
+interface InterpolatedBallState extends BallState {
+  targetX: number;
+  targetY: number;
+  lastUpdateTime: number;
+}
+
+interface InterpolatedFigureState extends FigureState {
+  targetY: number;
+  lastUpdateTime: number;
+}
+
+interface InterpolatedPlayerRodState extends PlayerRodState {
+  figures: InterpolatedFigureState[];
+}
+
 @Component({
   selector: 'app-game-field',
   imports: [],
@@ -32,6 +47,14 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
   private ctx!: CanvasRenderingContext2D;
   private animationFrame!: number;
   private canvas!: HTMLCanvasElement;
+
+  // Interpolation properties
+  private interpolatedBall!: InterpolatedBallState;
+  private interpolatedRods!: {
+    team1: InterpolatedPlayerRodState[];
+    team2: InterpolatedPlayerRodState[];
+  };
+  private interpolationSpeed = 0.35; // For interpolation @ 30 FPS
 
   // game state
   @Input({ required: true }) ball!: BallState;
@@ -57,6 +80,7 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     }
 
     this.setupCanvas();
+    this.initializeInterpolation();
     this.startGameLoop();
   }
 
@@ -67,7 +91,20 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(change: SimpleChanges): void {
-    if (this.ctx) this.draw();
+    if (this.ctx) {
+      if (!this.interpolatedBall || !this.interpolatedRods) {
+        this.initializeInterpolation();
+      } else {
+        this.updateInterpolationTargets();
+      }
+    } else {
+      // If context isn't ready yet, we'll initialize on the next update cycle
+      setTimeout(() => {
+        if (this.ctx && (!this.interpolatedBall || !this.interpolatedRods)) {
+          this.initializeInterpolation();
+        }
+      }, 0);
+    }
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -108,58 +145,115 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     gameLoop();
   }
 
-  private update(): void {
-    this.updateRods(1);
-    this.updateRods(2);
-    this.updateBall();
-    this.checkCollisions();
+  private initializeInterpolation(): void {
+    // Ensure we have valid data before initializing
+    if (!this.ball || !this.rods || !this.rods.team1 || !this.rods.team2) {
+      return;
+    }
+
+    // Initialize interpolated ball state
+    this.interpolatedBall = {
+      ...this.ball,
+      targetX: this.ball.x,
+      targetY: this.ball.y,
+      lastUpdateTime: performance.now(),
+    };
+
+    // Initialize interpolated rod states
+    this.interpolatedRods = {
+      team1: this.rods.team1.map(rod => ({
+        ...rod,
+        figures: rod.figures.map(figure => ({
+          ...figure,
+          targetY: figure.y,
+          lastUpdateTime: performance.now(),
+        })),
+      })),
+      team2: this.rods.team2.map(rod => ({
+        ...rod,
+        figures: rod.figures.map(figure => ({
+          ...figure,
+          targetY: figure.y,
+          lastUpdateTime: performance.now(),
+        })),
+      })),
+    };
   }
 
-  private updateRods(team: 1 | 2): void {
-    this.rods[`team${team}`].forEach((rod) => {
-      const lambda = (figure: FigureState) => {
-        figure.y += rod.vy;
+  private updateInterpolationTargets(): void {
+    if (!this.interpolatedBall || !this.interpolatedRods) {
+      this.initializeInterpolation();
+      return;
+    }
 
-        // Ensure figures stay within the rod bounds
-        if (figure.y < this.config.figureRadius) {
-          figure.y = this.config.figureRadius;
-          return false;
-        } else if (
-          figure.y >
-          this.config.rodHeight - this.config.figureRadius
-        ) {
-          figure.y = this.config.rodHeight - this.config.figureRadius;
-          return false;
+    const now = performance.now();
+    
+    // Update ball targets
+    this.interpolatedBall.targetX = this.ball.x;
+    this.interpolatedBall.targetY = this.ball.y;
+    this.interpolatedBall.vx = this.ball.vx;
+    this.interpolatedBall.vy = this.ball.vy;
+    this.interpolatedBall.lastUpdateTime = now;
+
+    // Update rod targets
+    ['team1', 'team2'].forEach((team) => {
+      const teamKey = team as 'team1' | 'team2';
+      this.rods[teamKey].forEach((rod, rodIndex) => {
+        if (this.interpolatedRods[teamKey][rodIndex]) {
+          this.interpolatedRods[teamKey][rodIndex].vy = rod.vy;
+          rod.figures.forEach((figure, figureIndex) => {
+            if (this.interpolatedRods[teamKey][rodIndex].figures[figureIndex]) {
+              this.interpolatedRods[teamKey][rodIndex].figures[figureIndex].targetY = figure.y;
+              this.interpolatedRods[teamKey][rodIndex].figures[figureIndex].lastUpdateTime = now;
+            }
+          });
         }
-        return true;
-      };
-      if (rod.vy < 0) {
-        for (let i = 0; i < rod.figures.length; i++) {
-          if (!lambda(rod.figures[i])) {
-            break;
-          }
-        }
-      } else {
-        for (let i = rod.figures.length - 1; i >= 0; i--) {
-          if (!lambda(rod.figures[i])) {
-            break;
-          }
-        }
-      }
+      });
     });
   }
 
-  private updateBall(): void {}
+  private update(): void {
+    if (!this.interpolatedBall || !this.interpolatedRods) {
+      // Try to initialize if we have valid data
+      if (this.ball && this.rods && this.rods.team1 && this.rods.team2) {
+        this.initializeInterpolation();
+      }
+      return;
+    }
 
-  private checkCollisions(): void {}
+    // Interpolate ball position
+    this.interpolatedBall.x += (this.interpolatedBall.targetX - this.interpolatedBall.x) * this.interpolationSpeed;
+    this.interpolatedBall.y += (this.interpolatedBall.targetY - this.interpolatedBall.y) * this.interpolationSpeed;
+
+    // Interpolate figure positions
+    ['team1', 'team2'].forEach((team) => {
+      const teamKey = team as 'team1' | 'team2';
+      this.interpolatedRods[teamKey].forEach((rod) => {
+        rod.figures.forEach((figure) => {
+          figure.y += (figure.targetY - figure.y) * this.interpolationSpeed;
+        });
+      });
+    });
+  }
 
   private draw(): void {
     this.clearCanvas();
     this.drawField();
     this.drawFieldMarkings();
     this.drawGoals();
-    this.drawRods();
-    this.drawBall();
+    
+    // Always ensure interpolation is initialized before drawing
+    if (!this.interpolatedBall || !this.interpolatedRods) {
+      if (this.ball && this.rods && this.rods.team1 && this.rods.team2) {
+        this.initializeInterpolation();
+      }
+    }
+    
+    // Use interpolated rendering for smooth animation
+    if (this.interpolatedBall && this.interpolatedRods) {
+      this.drawBall();
+      this.drawRods();
+    }
   }
 
   private clearCanvas(): void {
@@ -254,12 +348,14 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   private drawBall(): void {
+    const ball = this.interpolatedBall;
+    
     // Ball shadow
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
     this.ctx.beginPath();
     this.ctx.arc(
-      this.ball.x + 2,
-      this.ball.y + 2,
+      ball.x + 2,
+      ball.y + 2,
       this.config.ballRadius,
       0,
       2 * Math.PI,
@@ -270,8 +366,8 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     this.ctx.fillStyle = '#ffffff';
     this.ctx.beginPath();
     this.ctx.arc(
-      this.ball.x,
-      this.ball.y,
+      ball.x,
+      ball.y,
       this.config.ballRadius,
       0,
       2 * Math.PI,
@@ -286,17 +382,17 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   private drawRods(): void {
     // Draw team 1 rods (red team)
-    this.rods.team1.forEach((rod, i) => {
+    this.interpolatedRods.team1.forEach((rod, i) => {
       this.drawRod(rod, '#ff4444', this.team === 1 && this.activeRod - 1 === i);
     });
 
     // Draw team 2 rods (blue team)
-    this.rods.team2.forEach((rod, i) => {
+    this.interpolatedRods.team2.forEach((rod, i) => {
       this.drawRod(rod, '#4444ff', this.team === 2 && this.activeRod - 1 === i);
     });
   }
 
-  private drawRod(rod: PlayerRodState, color: string, active: boolean): void {
+  private drawRod(rod: InterpolatedPlayerRodState, color: string, active: boolean): void {
     // Draw the rod itself
     this.ctx.strokeStyle = active ? '#000000' : '#888888';
     this.ctx.lineWidth = this.config.rodWidth;
@@ -311,7 +407,7 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     });
   }
 
-  private drawFigure(x: number, figure: FigureState, color: string): void {
+  private drawFigure(x: number, figure: InterpolatedFigureState, color: string): void {
     // Figure shadow
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
     this.ctx.beginPath();

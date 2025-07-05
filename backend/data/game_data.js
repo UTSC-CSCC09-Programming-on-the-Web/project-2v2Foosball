@@ -6,8 +6,6 @@ export const userToGameMap = new Map();
 export const games = new Map();
 
 function gameFunction(gameId) {
-  // TODO: update ball position
-
   const game = games.get(gameId);
   if (!game) {
     console.error(`Game with ID ${gameId} not found.`);
@@ -34,8 +32,14 @@ function updateFunction(gameId) {
     eventType: "position_update",
     gameState: {
       ball: game.state.ball,
-      team1: game.state.team1.score,
-      team2: game.state.team2.score,
+      team1: {
+        score: game.state.team1.score,
+        rods: game.state.team1.rods,
+      },
+      team2: {
+        score: game.state.team2.score,
+        rods: game.state.team2.rods,
+      },
     },
   });
 }
@@ -175,7 +179,7 @@ export function addNewGame(gameId) {
   games.set(gameId, {
     ...GAME_DEFAULTS,
     gameFunction: setInterval(() => gameFunction(gameId), 1000 / 60),
-    updateFunction: setInterval(() => updateFunction(gameId), 1000 / 10),
+    updateFunction: setInterval(() => updateFunction(gameId), 1000 / 30),
   });
 }
 
