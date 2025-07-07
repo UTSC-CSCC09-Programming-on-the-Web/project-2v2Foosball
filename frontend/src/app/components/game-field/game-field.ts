@@ -22,12 +22,10 @@ import {
 interface InterpolatedBallState extends BallState {
   targetX: number;
   targetY: number;
-  lastUpdateTime: number;
 }
 
 interface InterpolatedFigureState extends FigureState {
   targetY: number;
-  lastUpdateTime: number;
 }
 
 interface InterpolatedPlayerRodState extends PlayerRodState {
@@ -156,7 +154,6 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
       ...this.ball,
       targetX: this.ball.x,
       targetY: this.ball.y,
-      lastUpdateTime: performance.now(),
     };
 
     // Initialize interpolated rod states
@@ -166,7 +163,6 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
         figures: rod.figures.map(figure => ({
           ...figure,
           targetY: figure.y,
-          lastUpdateTime: performance.now(),
         })),
       })),
       team2: this.rods.team2.map(rod => ({
@@ -174,7 +170,6 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
         figures: rod.figures.map(figure => ({
           ...figure,
           targetY: figure.y,
-          lastUpdateTime: performance.now(),
         })),
       })),
     };
@@ -186,14 +181,11 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
       return;
     }
 
-    const now = performance.now();
-    
     // Update ball targets
     this.interpolatedBall.targetX = this.ball.x;
     this.interpolatedBall.targetY = this.ball.y;
     this.interpolatedBall.vx = this.ball.vx;
     this.interpolatedBall.vy = this.ball.vy;
-    this.interpolatedBall.lastUpdateTime = now;
 
     // Update rod targets
     ['team1', 'team2'].forEach((team) => {
@@ -204,7 +196,6 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
           rod.figures.forEach((figure, figureIndex) => {
             if (this.interpolatedRods[teamKey][rodIndex].figures[figureIndex]) {
               this.interpolatedRods[teamKey][rodIndex].figures[figureIndex].targetY = figure.y;
-              this.interpolatedRods[teamKey][rodIndex].figures[figureIndex].lastUpdateTime = now;
             }
           });
         }
