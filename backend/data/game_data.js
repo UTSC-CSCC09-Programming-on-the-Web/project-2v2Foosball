@@ -109,8 +109,8 @@ function checkBounds(game) {
     return { pos, vel };
   }
 
-  const xCheck = reflect(ball.x, ball.vx, ballRadius, fieldWidth);
-  const yCheck = reflect(ball.y, ball.vy, ballRadius, fieldHeight);
+  const xCheck = reflect(ball.x, ball.vx, 0, fieldWidth);
+  const yCheck = reflect(ball.y, ball.vy, 0, fieldHeight);
 
   ball.x = xCheck.pos;
   ball.vx = xCheck.vel;
@@ -163,13 +163,47 @@ function checkCollisions(game) {
 }
 
 function checkGoals(game) {
-  // TODO: Check if the ball is in the goal area and update scores
+  const ball = game.state.ball;
+  const { fieldWidth, fieldHeight, goalWidth, goalHeight, ballRadius } = game.config;
+  const leftGoalX = goalWidth / 2;
+  const rightGoalX = fieldWidth - goalWidth / 2;
+  const goalTop = fieldHeight / 2 - goalHeight / 2;
+  const goalBottom = fieldHeight / 2 + goalHeight / 2;
+
+  if (
+    ball.x < leftGoalX + ballRadius &&
+    ball.y >= goalTop &&
+    ball.y <= goalBottom
+  ) {
+    // Ball is in left goal
+    game.state.team2.score += 1;
+    resetBall(game);
+  } else if (
+    ball.x > rightGoalX - ballRadius &&
+    ball.y >= goalTop &&
+    ball.y <= goalBottom
+  ) {
+    // Ball is in right goal
+    game.state.team1.score += 1;
+    resetBall(game);
+  }
 }
 
 function resetBall(game) {
-  // TODO: Reset ball properly/game state properly
+  if (game.state.team1.score >= game.config.maxScore || game.state.team2.score >= game.config.maxScore) {
+    // Reset scores if max score is reached
+    endGame(game);
+  }
+  // Basic reset logic after a goal
+  game.state.ball.x = game.config.fieldWidth / 2;
+  game.state.ball.y = game.config.fieldHeight / 2;
+  game.state.ball.vx = -5;
+  game.state.ball.vy = 0;
 }
 
+function endGame(game) {
+  // TODO: End game logic
+}
 export function addNewGame(gameId) {
   if (games.has(gameId)) {
     console.error(`Game with ID ${gameId} already exists.`);
