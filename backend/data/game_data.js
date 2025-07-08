@@ -1,4 +1,5 @@
 import { io } from "../app.js";
+import { spectatorService } from "./spectator.js";
 
 export const userToGameMap = new Map();
 
@@ -19,6 +20,38 @@ function gameFunction(gameId) {
 
   updateRods(game, 1);
   updateRods(game, 2);
+
+  spectatorService.recordGameState(gameId, {
+    ball: game.state.ball,
+    team1: {
+      score: game.state.team1.score,
+      rods: game.state.team1.rods,
+    },
+    team2: {
+      score: game.state.team2.score,
+      rods: game.state.team2.rods,
+    },
+  });
+}
+
+function spectatorUpdateFunction(gameId) {
+  const delayedState = spectatorService.getSpectatorState(gameId);
+  if (delayedState) {
+    io.to(`spectator-${gameId}`).emit("spectator.updated", {
+      eventType: "position_update",
+      gameState: {
+        ball: delayedState.ball,
+        team1: {
+          score: delayedState.team1.score,
+          rods: delayedState.team1.rods,
+        },
+        team2: {
+          score: delayedState.team2.score,
+          rods: delayedState.team2.rods,
+        },
+      },
+    });
+  }
 }
 
 function updateFunction(gameId) {
@@ -107,7 +140,7 @@ function checkBounds(game) {
       vel = -Math.abs(vel);
     }
     return { pos, vel };
-  }
+  };
 
   const xCheck = reflect(ball.x, ball.vx, 0, fieldWidth);
   const yCheck = reflect(ball.y, ball.vy, 0, fieldHeight);
@@ -134,7 +167,8 @@ function checkCollisions(game) {
           ball.vx = Math.abs(speed * Math.cos(angle));
           ball.vy = speed * Math.sin(angle);
           // Move ball out of collision
-          const overlap = game.config.ballRadius + game.config.figureRadius - distance;
+          const overlap =
+            game.config.ballRadius + game.config.figureRadius - distance;
           ball.x += overlap * Math.cos(angle);
           ball.y += overlap * Math.sin(angle);
         }
@@ -153,7 +187,8 @@ function checkCollisions(game) {
           ball.vx = -Math.abs(speed * Math.cos(angle));
           ball.vy = speed * Math.sin(angle);
           // Move ball out of collision
-          const overlap = game.config.ballRadius + game.config.figureRadius - distance;
+          const overlap =
+            game.config.ballRadius + game.config.figureRadius - distance;
           ball.x += overlap * Math.cos(angle);
           ball.y += overlap * Math.sin(angle);
         }
@@ -164,7 +199,8 @@ function checkCollisions(game) {
 
 function checkGoals(game) {
   const ball = game.state.ball;
-  const { fieldWidth, fieldHeight, goalWidth, goalHeight, ballRadius } = game.config;
+  const { fieldWidth, fieldHeight, goalWidth, goalHeight, ballRadius } =
+    game.config;
   const leftGoalX = goalWidth / 2;
   const rightGoalX = fieldWidth - goalWidth / 2;
   const goalTop = fieldHeight / 2 - goalHeight / 2;
@@ -190,7 +226,10 @@ function checkGoals(game) {
 }
 
 function resetBall(game) {
-  if (game.state.team1.score >= game.config.maxScore || game.state.team2.score >= game.config.maxScore) {
+  if (
+    game.state.team1.score >= game.config.maxScore ||
+    game.state.team2.score >= game.config.maxScore
+  ) {
     // Reset scores if max score is reached
     endGame(game);
   }
@@ -214,6 +253,10 @@ export function addNewGame(gameId) {
     ...GAME_DEFAULTS,
     gameFunction: setInterval(() => gameFunction(gameId), 1000 / 60),
     updateFunction: setInterval(() => updateFunction(gameId), 1000 / 30),
+    spectatorFunction: setInterval(
+      () => spectatorUpdateFunction(gameId),
+      spectatorService.SNAPSHOT_INTERVAL,
+    ),
   });
 }
 
