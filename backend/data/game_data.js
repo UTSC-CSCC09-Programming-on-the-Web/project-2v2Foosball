@@ -6,13 +6,16 @@ export const userToGameMap = new Map();
 export const games = new Map();
 
 function gameFunction(gameId) {
-  // TODO: update ball position
-
   const game = games.get(gameId);
   if (!game) {
     console.error(`Game with ID ${gameId} not found.`);
     return;
   }
+
+  updateGamePhysics(game);
+  checkBounds(game);
+  checkCollisions(game);
+  checkGoals(game);
 
   updateRods(game, 1);
   updateRods(game, 2);
@@ -29,8 +32,14 @@ function updateFunction(gameId) {
     eventType: "position_update",
     gameState: {
       ball: game.state.ball,
-      team1: game.state.team1.score,
-      team2: game.state.team2.score,
+      team1: {
+        score: game.state.team1.score,
+        rods: game.state.team1.rods,
+      },
+      team2: {
+        score: game.state.team2.score,
+        rods: game.state.team2.rods,
+      },
     },
   });
 }
@@ -66,6 +75,135 @@ function updateRods(game, team) {
   });
 }
 
+function updateGamePhysics(game) {
+  const ball = game.state.ball;
+  // Update ball position based on its velocity
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  // // Friction
+  // ball.vx *= 0.99;
+  // ball.vy *= 0.99;
+
+  // // Stop micro-movements
+  // if (Math.abs(ball.vx) < 0.05) {
+  //   ball.vx = 0;
+  // }
+  // if (Math.abs(ball.vy) < 0.05) {
+  //   ball.vy = 0;
+  // }
+}
+
+function checkBounds(game) {
+  const ball = game.state.ball;
+  const { fieldWidth, fieldHeight, ballRadius } = game.config;
+
+  const reflect = (pos, vel, min, max) => {
+    if (pos < min + ballRadius) {
+      pos = min + ballRadius;
+      vel = Math.abs(vel);
+    } else if (pos > max - ballRadius) {
+      pos = max - ballRadius;
+      vel = -Math.abs(vel);
+    }
+    return { pos, vel };
+  }
+
+  const xCheck = reflect(ball.x, ball.vx, 0, fieldWidth);
+  const yCheck = reflect(ball.y, ball.vy, 0, fieldHeight);
+
+  ball.x = xCheck.pos;
+  ball.vx = xCheck.vel;
+  ball.y = yCheck.pos;
+  ball.vy = yCheck.vel;
+}
+
+function checkCollisions(game) {
+  const ball = game.state.ball;
+  // If the ball is on the left side of the field, check team1 rods
+  if (ball.x < game.config.fieldWidth / 2) {
+    game.state.team1.rods.forEach((rod) => {
+      rod.figures.forEach((figure) => {
+        const dx = ball.x - rod.x;
+        const dy = ball.y - figure.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < game.config.ballRadius + game.config.figureRadius) {
+          // Ball hits the figure (circle-circle collision)
+          const angle = Math.atan2(dy, dx);
+          const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+          ball.vx = Math.abs(speed * Math.cos(angle));
+          ball.vy = speed * Math.sin(angle);
+          // Move ball out of collision
+          const overlap = game.config.ballRadius + game.config.figureRadius - distance;
+          ball.x += overlap * Math.cos(angle);
+          ball.y += overlap * Math.sin(angle);
+        }
+      });
+    });
+  } else {
+    game.state.team2.rods.forEach((rod) => {
+      rod.figures.forEach((figure) => {
+        const dx = ball.x - rod.x;
+        const dy = ball.y - figure.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < game.config.ballRadius + game.config.figureRadius) {
+          // Ball hits the figure (circle-circle collision)
+          const angle = Math.atan2(dy, dx);
+          const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+          ball.vx = -Math.abs(speed * Math.cos(angle));
+          ball.vy = speed * Math.sin(angle);
+          // Move ball out of collision
+          const overlap = game.config.ballRadius + game.config.figureRadius - distance;
+          ball.x += overlap * Math.cos(angle);
+          ball.y += overlap * Math.sin(angle);
+        }
+      });
+    });
+  }
+}
+
+function checkGoals(game) {
+  const ball = game.state.ball;
+  const { fieldWidth, fieldHeight, goalWidth, goalHeight, ballRadius } = game.config;
+  const leftGoalX = goalWidth / 2;
+  const rightGoalX = fieldWidth - goalWidth / 2;
+  const goalTop = fieldHeight / 2 - goalHeight / 2;
+  const goalBottom = fieldHeight / 2 + goalHeight / 2;
+
+  if (
+    ball.x < leftGoalX + ballRadius &&
+    ball.y >= goalTop &&
+    ball.y <= goalBottom
+  ) {
+    // Ball is in left goal
+    game.state.team2.score += 1;
+    resetBall(game);
+  } else if (
+    ball.x > rightGoalX - ballRadius &&
+    ball.y >= goalTop &&
+    ball.y <= goalBottom
+  ) {
+    // Ball is in right goal
+    game.state.team1.score += 1;
+    resetBall(game);
+  }
+}
+
+function resetBall(game) {
+  if (game.state.team1.score >= game.config.maxScore || game.state.team2.score >= game.config.maxScore) {
+    // Reset scores if max score is reached
+    endGame(game);
+  }
+  // Basic reset logic after a goal
+  game.state.ball.x = game.config.fieldWidth / 2;
+  game.state.ball.y = game.config.fieldHeight / 2;
+  game.state.ball.vx = -5;
+  game.state.ball.vy = 0;
+}
+
+function endGame(game) {
+  // TODO: End game logic
+}
 export function addNewGame(gameId) {
   if (games.has(gameId)) {
     console.error(`Game with ID ${gameId} already exists.`);
@@ -75,7 +213,7 @@ export function addNewGame(gameId) {
   games.set(gameId, {
     ...GAME_DEFAULTS,
     gameFunction: setInterval(() => gameFunction(gameId), 1000 / 60),
-    updateFunction: setInterval(() => updateFunction(gameId), 1000 / 10),
+    updateFunction: setInterval(() => updateFunction(gameId), 1000 / 30),
   });
 }
 
@@ -97,7 +235,7 @@ export const GAME_DEFAULTS = {
     ball: {
       x: 600,
       y: 250,
-      vx: 0,
+      vx: -5,
       vy: 0,
     },
     team1: {

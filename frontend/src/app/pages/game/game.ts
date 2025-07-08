@@ -17,14 +17,40 @@ import { GameEvent, GameConfig } from '../../types/game';
 export class Game implements OnInit, OnDestroy {
   // Game state for child components
   ball: BallState = {
-    x: 0,
-    y: 0,
+    x: 600,
+    y: 250,
     vx: 0,
     vy: 0,
   };
   rods: { team1: PlayerRodState[]; team2: PlayerRodState[] } = {
-    team1: [],
-    team2: [],
+    team1: [
+      {
+        x: 100,
+        vy: 0,
+        figureCount: 1,
+        figures: [{ y: 250 }],
+      },
+      {
+        x: 300,
+        vy: 0,
+        figureCount: 3,
+        figures: [{ y: 100 }, { y: 250 }, { y: 400 }],
+      },
+    ],
+    team2: [
+      {
+        x: 900,
+        vy: 0,
+        figureCount: 3,
+        figures: [{ y: 100 }, { y: 250 }, { y: 400 }],
+      },
+      {
+        x: 1100,
+        vy: 0,
+        figureCount: 1,
+        figures: [{ y: 250 }],
+      },
+    ],
   };
   score: { team1: number; team2: number } = { team1: 0, team2: 0 };
   config: GameConfig = {
@@ -53,8 +79,15 @@ export class Game implements OnInit, OnDestroy {
     private socketService: SocketService,
     private router: Router,
   ) {
+    console.log('Game constructor - initial state:', {
+      ball: this.ball,
+      rods: this.rods,
+      config: this.config
+    });
+    
     this.api.getGame().subscribe({
       next: (game) => {
+        console.log('Game data received:', game);
         this.ball = game.state.ball || {
           x: 0,
           y: 0,
@@ -72,6 +105,12 @@ export class Game implements OnInit, OnDestroy {
         this.config = game.config;
         this.team = game.meta.team;
         this.activeRod = game.meta.activeRod;
+        
+        console.log('Game state after setting:', {
+          ball: this.ball,
+          rods: this.rods,
+          config: this.config
+        });
       },
       error: (err) => {
         console.error('Failed to load game state:', err);
@@ -92,61 +131,27 @@ export class Game implements OnInit, OnDestroy {
     this.socketSub = this.socketService
       .listen<GameEvent>('game.updated')
       .subscribe((event) => {
-        if (event.eventType === 'position_update') {
+        if (event.eventType === 'position_update' || event.eventType === 'goal_scored') {
+          // Update game state directly - the game field component will handle interpolation
           if (event.gameState.ball) {
-            const dx = event.gameState.ball.x - this.ball.x;
-            const dy = event.gameState.ball.y - this.ball.y;
-
-            if (
-              Math.abs(dx) > this.config.ballSpeed ||
-              Math.abs(dy) > this.config.ballSpeed
-            ) {
-              console.log('Ball out of sync');
-              this.ball.x = event.gameState.ball.x;
-              this.ball.y = event.gameState.ball.y;
-              this.ball.vx = event.gameState.ball.vx;
-              this.ball.vy = event.gameState.ball.vy;
-            }
+            this.ball = { ...event.gameState.ball };
           }
           if (event.gameState.team1?.rods) {
-            for (let i = 0; i < event.gameState.team1.rods.length; i++) {
-              const rod = event.gameState.team1.rods[i];
-
-              const dx = Math.abs(rod.x - this.rods.team1[i].x);
-
-              if (dx > this.config.rodWidth) {
-                console.log('Team1 rod out of sync');
-                this.rods.team1[i].x = rod.x;
-                this.rods.team1[i].vy = rod.vy;
-                this.rods.team1[i].figureCount = rod.figureCount;
-                this.rods.team1[i].figures = rod.figures;
-              }
-            }
+            this.rods.team1 = [...event.gameState.team1.rods];
           }
           if (event.gameState.team2?.rods) {
-            for (let i = 0; i < event.gameState.team2.rods.length; i++) {
-              const rod = event.gameState.team2.rods[i];
-
-              const dx = Math.abs(rod.x - this.rods.team1[i].x);
-
-              if (dx > this.config.rodWidth) {
-                console.log('Team2 rod out of sync');
-                this.rods.team2[i].x = rod.x;
-                this.rods.team2[i].vy = rod.vy;
-                this.rods.team2[i].figureCount = rod.figureCount;
-                this.rods.team2[i].figures = rod.figures;
-              }
-            }
+            this.rods.team2 = [...event.gameState.team2.rods];
           }
-          // this.updateGameState(event.gameState);
-        } else if (event.eventType === 'direction_update') {
-          if (event.gameState.team1?.rods) {
-            this.rods.team1[0].vy = event.gameState.team1.rods[0].vy;
-            this.rods.team1[1].vy = event.gameState.team1.rods[1].vy;
+          if (event.gameState.team1?.score !== undefined) {
+            this.score.team1 = event.gameState.team1.score;
           }
-          if (event.gameState.team2?.rods) {
-            this.rods.team2[0].vy = event.gameState.team2.rods[0].vy;
-            this.rods.team2[1].vy = event.gameState.team2.rods[1].vy;
+          if (event.gameState.team2?.score !== undefined) {
+            this.score.team2 = event.gameState.team2.score;
+          }
+          
+          // Log goal events
+          if (event.eventType === 'goal_scored') {
+            console.log('Goal scored! New score:', this.score);
           }
         }
       });
@@ -158,17 +163,31 @@ export class Game implements OnInit, OnDestroy {
     if (event.type === 'keydown') {
       if (key === 'a') {
         if (this.activeRod === 2) {
+          // If w or s is held, stop previous rod
+          if (this.keystates.has('w') || this.keystates.has('s')) {
+            this.socketService.emit('game.keypress', {
+              key: this.keystates.has('w') ? 'w' : 's',
+              activeRod: this.activeRod,
+              type: 'keyup',
+            });
+          }
           this.activeRod = 1;
         }
       } else if (key === 'd') {
         if (this.activeRod === 1) {
+          // If w or s is held, stop previous rod
+          if (this.keystates.has('w') || this.keystates.has('s')) {
+            this.socketService.emit('game.keypress', {
+              key: this.keystates.has('w') ? 'w' : 's',
+              activeRod: this.activeRod,
+              type: 'keyup',
+            });
+          }
           this.activeRod = 2;
         }
       } else {
         this.keystates.add(key);
-        this.rods[`team${this.team}`][this.activeRod - 1].vy =
-          key === 'w' ? -this.config.rodSpeed : this.config.rodSpeed;
-
+        // Send keypress to server
         this.socketService.emit('game.keypress', {
           key: key,
           activeRod: this.activeRod,
@@ -178,8 +197,7 @@ export class Game implements OnInit, OnDestroy {
     } else if (event.type === 'keyup') {
       this.keystates.delete(key);
       if (key === 'w' || key === 's') {
-        this.rods[`team${this.team}`][this.activeRod - 1].vy = 0;
-
+        // Send keyup to server
         this.socketService.emit('game.keypress', {
           key: key,
           activeRod: this.activeRod,
