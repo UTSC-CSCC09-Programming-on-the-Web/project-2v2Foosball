@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Header } from '../../components/header/header';
 import { QueueComponent } from '../../components/queue/queue';
+import { SpectatorListComponent } from '../../components/spectator-list/spectator-list'; // ADD THIS
 import { AuthService } from '../../services/auth';
 import { Api } from '../../services/api';
 import { User } from '../../types/user';
@@ -11,7 +12,7 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-index',
-  imports: [Header, CommonModule, QueueComponent],
+  imports: [Header, CommonModule, QueueComponent, SpectatorListComponent], // ADD SpectatorListComponent HERE
   templateUrl: './index.html',
   styleUrl: './index.scss',
 })
