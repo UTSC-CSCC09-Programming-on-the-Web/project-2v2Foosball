@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { SpectatorService, ActiveGame } from '../../services/spectator.service';
 
@@ -15,16 +16,33 @@ export class SpectatorListComponent implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
   private subscriptions: Subscription[] = [];
+  private updateTimer: any;
 
-  constructor(private spectatorService: SpectatorService) {}
+  constructor(
+    private spectatorService: SpectatorService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadActiveGames();
     this.setupSpectatorCountUpdates();
+    this.startUpdateTimer();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
+    if (this.updateTimer) {
+      clearInterval(this.updateTimer);
+    }
+  }
+
+  private startUpdateTimer(): void {
+    // Update the time display every second
+    this.updateTimer = setInterval(() => {
+      // Trigger change detection to update the displayed times
+      this.cdr.detectChanges();
+    }, 1000);
   }
 
   private loadActiveGames(): void {
@@ -61,9 +79,8 @@ export class SpectatorListComponent implements OnInit, OnDestroy {
   }
 
   spectateGame(gameId: string): void {
-    // TODO: Navigate to spectator game view or emit event
-    console.log('Spectating game:', gameId);
-    this.spectatorService.joinSpectating(gameId);
+    this.spectatorService.setCurrentGame(gameId);
+    this.router.navigate(['/spectator']);
   }
 
   refreshGames(): void {

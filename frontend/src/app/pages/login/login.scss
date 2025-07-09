@@ -8,8 +8,7 @@
 .login-card {
   background: white;
   border-radius: 12px;
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
   padding: 40px;
   width: 100%;
@@ -100,9 +99,6 @@
   .login-card {
     padding: 24px;
   }
-
-  .login-header h1 {
-  }
 }
 
 .mock-login-btn {
@@ -120,11 +116,45 @@
   cursor: pointer;
   transition: all 0.2s ease;
   min-height: 48px;
+  margin-bottom: 8px;
+}
+
+.mock-login-btn.mock-user-2 {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.mock-login-section {
+  margin-top: 24px;
+}
+
+.mock-divider {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.mock-divider::before,
+.mock-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.mock-divider span {
+  padding: 0 16px;
 }
 
 .mock-login-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.mock-login-btn.mock-user-2:hover:not(:disabled) {
+  background-color: #bbdefb;
 }
 
 .mock-login-btn:active:not(:disabled) {
