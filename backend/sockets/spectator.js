@@ -20,26 +20,50 @@ export function registerSpectatorListeners(io, socket) {
     socket.join(`spectator-${gameId}`);
     spectatorService.addSpectator(gameId, socket.id);
 
-    console.log(
-      `User ${socket.user?.userId || "anonymous"} joined spectating game ${gameId}`,
-    );
-
     // Send initial game state (delayed) if available
     const spectatorState = spectatorService.getSpectatorState(gameId);
+
     if (spectatorState) {
+      const gameData = games.get(gameId);
       socket.emit("spectator.updated", {
-        eventType: "position_update",
+        gameId,
         gameState: {
           ball: spectatorState.ball,
-          team1: {
-            score: spectatorState.team1.score,
-            rods: spectatorState.team1.rods,
+          rods: {
+            team1: spectatorState.team1?.rods || [],
+            team2: spectatorState.team2?.rods || [],
           },
-          team2: {
-            score: spectatorState.team2.score,
-            rods: spectatorState.team2.rods,
+          config: gameData?.config || {
+            fieldWidth: 1200,
+            fieldHeight: 500,
+            goalWidth: 20,
+            goalHeight: 200,
+            rodWidth: 20,
+            rodHeight: 400,
+            rodSpeed: 500,
+            ballRadius: 10,
+            ballSpeed: 300,
+            figureRadius: 20,
+          },
+          activeRod: gameData?.activeRod || 1,
+          gameInfo: {
+            score: {
+              team1: spectatorState.team1?.score || 0,
+              team2: spectatorState.team2?.score || 0,
+            },
+            players: gameData?.players || {
+              team1: [],
+              team2: [],
+            },
           },
         },
+      });
+    } else {
+      // Game hasn't been running long enough for delayed state
+      socket.emit("spectator.error", {
+        gameId,
+        message:
+          "Game is too new. Please wait a few seconds for spectator delay to build up...",
       });
     }
 
@@ -56,10 +80,6 @@ export function registerSpectatorListeners(io, socket) {
 
     socket.leave(`spectator-${gameId}`);
     spectatorService.removeSpectator(gameId, socket.id);
-
-    console.log(
-      `User ${socket.user?.userId || "anonymous"} left spectating game ${gameId}`,
-    );
 
     // Notify about spectator count update
     io.emit("spectator.count.updated", {

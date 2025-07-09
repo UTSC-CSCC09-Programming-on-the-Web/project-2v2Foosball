@@ -37,17 +37,37 @@ function gameFunction(gameId) {
 function spectatorUpdateFunction(gameId) {
   const delayedState = spectatorService.getSpectatorState(gameId);
   if (delayedState) {
+    const gameData = games.get(gameId);
     io.to(`spectator-${gameId}`).emit("spectator.updated", {
-      eventType: "position_update",
+      gameId,
       gameState: {
         ball: delayedState.ball,
-        team1: {
-          score: delayedState.team1.score,
-          rods: delayedState.team1.rods,
+        rods: {
+          team1: delayedState.team1?.rods || [],
+          team2: delayedState.team2?.rods || [],
         },
-        team2: {
-          score: delayedState.team2.score,
-          rods: delayedState.team2.rods,
+        config: gameData?.config || {
+          fieldWidth: 1200,
+          fieldHeight: 500,
+          goalWidth: 20,
+          goalHeight: 200,
+          rodWidth: 20,
+          rodHeight: 400,
+          rodSpeed: 500,
+          ballRadius: 10,
+          ballSpeed: 300,
+          figureRadius: 20,
+        },
+        activeRod: gameData?.activeRod || 1,
+        gameInfo: {
+          score: {
+            team1: delayedState.team1?.score || 0,
+            team2: delayedState.team2?.score || 0,
+          },
+          players: gameData?.players || {
+            team1: [],
+            team2: [],
+          },
         },
       },
     });

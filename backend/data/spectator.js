@@ -28,8 +28,8 @@ export class SpectatorService {
       ...gameState,
     });
 
-    // Remove snapshots older than buffer duration
-    const cutoffTime = now - this.BUFFER_DURATION;
+    // Remove snapshots older than buffer duration + 1 second (for safety)
+    const cutoffTime = now - (this.BUFFER_DURATION + 1000);
     this.gameSnapshots.set(
       gameId,
       snapshots.filter((snapshot) => snapshot.timestamp > cutoffTime),
@@ -43,8 +43,34 @@ export class SpectatorService {
       return null;
     }
 
-    // Return the oldest snapshot (5 seconds behind)
-    return snapshots[0];
+    const now = Date.now();
+    const targetTime = now - this.BUFFER_DURATION; // 5 seconds ago
+
+    // Find the snapshot closest to 5 seconds ago
+    let closestSnapshot = null;
+    let closestTimeDiff = Infinity;
+
+    for (const snapshot of snapshots) {
+      const timeDiff = Math.abs(snapshot.timestamp - targetTime);
+      if (timeDiff < closestTimeDiff) {
+        closestTimeDiff = timeDiff;
+        closestSnapshot = snapshot;
+      }
+    }
+
+    if (!closestSnapshot) {
+      return null;
+    }
+
+    const actualDelay = (now - closestSnapshot.timestamp) / 1000;
+
+    // Only return if we have a snapshot that's at least 4 seconds old
+    // (allowing 1 second tolerance for timing variations)
+    if (actualDelay >= 4.0) {
+      return closestSnapshot;
+    } else {
+      return null;
+    }
   }
 
   // Add spectator to a game
