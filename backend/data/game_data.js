@@ -14,6 +14,11 @@ function gameFunction(gameId) {
     return;
   }
 
+  // Skip game updates if the game is paused
+  if (game.state.isPaused) {
+    return;
+  }
+
   updateGamePhysics(game);
   checkBounds(game);
   checkCollisions(game);
@@ -246,7 +251,8 @@ function checkGoals(game, gameId) {
       game.state.team2.score,
     );
 
-    resetBall(game);
+    // Pause the game for celebration
+    pauseGameForCelebration(game, gameId);
   } else if (
     ball.x > rightGoalX - ballRadius &&
     ball.y >= goalTop &&
@@ -263,7 +269,8 @@ function checkGoals(game, gameId) {
       game.state.team2.score,
     );
 
-    resetBall(game);
+    // Pause the game for celebration
+    pauseGameForCelebration(game, gameId);
   }
 
   // If a goal was scored, immediately emit the updated game state
@@ -286,6 +293,94 @@ function checkGoals(game, gameId) {
   }
 }
 
+function pauseGameForCelebration(game, gameId) {
+  // Pause the game
+  game.state.isPaused = true;
+
+  // Clear any existing pause timer
+  if (game.state.pauseTimer) {
+    clearTimeout(game.state.pauseTimer);
+  }
+
+  // Set the ball velocity to 0 to stop it immediately
+  game.state.ball.vx = 0;
+  game.state.ball.vy = 0;
+
+  // After 3 seconds (celebration complete), reset ball position but keep it paused
+  setTimeout(() => {
+    // Reset ball to center position but with no velocity (still paused)
+    game.state.ball.x = game.config.fieldWidth / 2;
+    game.state.ball.y = game.config.fieldHeight / 2;
+    game.state.ball.vx = 0;
+    game.state.ball.vy = 0;
+
+    // Emit ball repositioned event to show the ball in center
+    io.to(`game-${gameId}`).emit("game.updated", {
+      eventType: "ball_repositioned",
+      gameState: {
+        ball: game.state.ball,
+        team1: {
+          score: game.state.team1.score,
+          rods: game.state.team1.rods,
+        },
+        team2: {
+          score: game.state.team2.score,
+          rods: game.state.team2.rods,
+        },
+      },
+    });
+  }, 3000);
+
+  // Resume the game after 4 seconds total (3s celebration + 1s with ball visible but stationary)
+  game.state.pauseTimer = setTimeout(() => {
+    game.state.isPaused = false;
+    game.state.pauseTimer = null;
+
+    // Give the ball initial random velocity to start the game
+    const randomVelocity = getRandomBallVelocity();
+    game.state.ball.vx = randomVelocity.vx;
+    game.state.ball.vy = randomVelocity.vy;
+
+    // Emit game resumed event
+    io.to(`game-${gameId}`).emit("game.updated", {
+      eventType: "game_resumed",
+      gameState: {
+        ball: game.state.ball,
+        team1: {
+          score: game.state.team1.score,
+          rods: game.state.team1.rods,
+        },
+        team2: {
+          score: game.state.team2.score,
+          rods: game.state.team2.rods,
+        },
+      },
+    });
+  }, 4000);
+}
+
+function getRandomBallVelocity(ballSpeed = 5) {
+  // Generate random angle that avoids purely vertical movement
+  // Exclude angles that would make the ball go straight up/down
+  // Use angles between -60° to 60° and 120° to 240° (in radians)
+  const excludeVerticalZone = Math.PI / 3; // 60 degrees in radians
+
+  let angle;
+  if (Math.random() < 0.5) {
+    // Left/right direction with some vertical component (±60°)
+    angle = (Math.random() - 0.5) * 2 * excludeVerticalZone; // -60° to +60°
+  } else {
+    // Opposite direction (120° to 240°)
+    angle = Math.PI + (Math.random() - 0.5) * 2 * excludeVerticalZone; // 120° to 240°
+  }
+
+  // Convert to velocity components using original ball speed (5)
+  const vx = Math.cos(angle) * 5; // Use fixed speed of 5 instead of ballSpeed
+  const vy = Math.sin(angle) * 5;
+
+  return { vx, vy };
+}
+
 function resetBall(game) {
   if (
     game.state.team1.score >= game.config.maxScore ||
@@ -297,8 +392,11 @@ function resetBall(game) {
   // Basic reset logic after a goal
   game.state.ball.x = game.config.fieldWidth / 2;
   game.state.ball.y = game.config.fieldHeight / 2;
-  game.state.ball.vx = -5;
-  game.state.ball.vy = 0;
+
+  // Set random velocity direction
+  const randomVelocity = getRandomBallVelocity();
+  game.state.ball.vx = randomVelocity.vx;
+  game.state.ball.vy = randomVelocity.vy;
 }
 
 function endGame(game) {
@@ -311,6 +409,11 @@ export function addNewGame(gameId, initialScores = null) {
   }
 
   const gameDefaults = { ...GAME_DEFAULTS };
+
+  // Set random initial ball velocity
+  const randomVelocity = getRandomBallVelocity();
+  gameDefaults.state.ball.vx = randomVelocity.vx;
+  gameDefaults.state.ball.vy = randomVelocity.vy;
 
   // If initial scores are provided, use them instead of defaults
   if (initialScores) {
@@ -347,6 +450,8 @@ export const GAME_DEFAULTS = {
     ballSpeed: 10,
   },
   state: {
+    isPaused: false,
+    pauseTimer: null,
     ball: {
       x: 600,
       y: 250,

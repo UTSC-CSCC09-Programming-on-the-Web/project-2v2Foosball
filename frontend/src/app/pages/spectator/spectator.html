@@ -26,6 +26,15 @@
       <app-spectator-field [ball]="ball" [rods]="rods" [config]="config">
       </app-spectator-field>
     </div>
+
+    <!-- Goal Celebration Overlay -->
+    @if (showGoalCelebration) {
+    <div class="goal-celebration-overlay">
+      <div class="goal-celebration-content">
+        <h1 class="goal-text">GOOOOOOOOALLLL!!!!!!</h1>
+      </div>
+    </div>
+    }
   </div>
 
   <div class="loading" *ngIf="isLoading">

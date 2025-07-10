@@ -22,6 +22,15 @@ export class SpectatorPage implements OnInit, OnDestroy {
   spectatorCount = 0;
   gameInfo: any = null;
 
+  // Goal celebration
+  showGoalCelebration: boolean = false;
+  goalCelebrationTimer: any;
+  private previousScore: { team1: number; team2: number } = {
+    team1: 0,
+    team2: 0,
+  };
+  private isFirstScoreUpdate: boolean = true;
+
   // Game state for child components - this will be updated with delayed state
   ball: BallState = {
     x: 600,
@@ -79,7 +88,7 @@ export class SpectatorPage implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private spectatorService: SpectatorService,
-    private cdr: ChangeDetectorRef,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -109,6 +118,11 @@ export class SpectatorPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
+
+    // Clean up goal celebration timer
+    if (this.goalCelebrationTimer) {
+      clearTimeout(this.goalCelebrationTimer);
+    }
 
     if (this.gameId && this.isConnected) {
       this.spectatorService.leaveSpectating(this.gameId);
@@ -203,8 +217,40 @@ export class SpectatorPage implements OnInit, OnDestroy {
     }
 
     if (gameState.gameInfo) {
+      // Check for score changes to trigger goal celebration
+      const newScore = gameState.gameInfo.score;
+      if (
+        newScore &&
+        !this.isFirstScoreUpdate && // Skip celebration on first load
+        (newScore.team1 > this.previousScore.team1 ||
+          newScore.team2 > this.previousScore.team2)
+      ) {
+        this.triggerGoalCelebration();
+      }
+
+      // Update previous score for next comparison
+      if (newScore) {
+        this.previousScore = { ...newScore };
+        this.isFirstScoreUpdate = false; // Mark that we've seen the first score
+      }
+
       this.gameInfo = gameState.gameInfo;
     }
+  }
+
+  private triggerGoalCelebration(): void {
+    // Show the goal celebration overlay
+    this.showGoalCelebration = true;
+
+    // Clear any existing timer
+    if (this.goalCelebrationTimer) {
+      clearTimeout(this.goalCelebrationTimer);
+    }
+
+    // Hide the celebration after 3 seconds
+    this.goalCelebrationTimer = setTimeout(() => {
+      this.showGoalCelebration = false;
+    }, 3000);
   }
 
   goBack(): void {

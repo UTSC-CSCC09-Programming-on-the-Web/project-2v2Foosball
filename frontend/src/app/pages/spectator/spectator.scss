@@ -58,6 +58,7 @@
 }
 
 .game-content {
+  position: relative; // Add relative positioning for absolute overlay
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -171,6 +172,58 @@
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+// Goal celebration overlay styles for spectators
+.goal-celebration-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.goal-celebration-content {
+  text-align: center;
+  animation: bounceIn 1s ease-out;
+}
+
+.goal-text {
+  color: #fff;
+  font-size: 4rem;
+  font-weight: bold;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+  margin: 0;
+  letter-spacing: 0.1em;
+  background: linear-gradient(
+    45deg,
+    #ff6b6b,
+    #4ecdc4,
+    #45b7d1,
+    #96ceb4,
+    #feca57
+  );
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 2s ease-in-out infinite,
+    pulseScale 1.5s ease-in-out infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 

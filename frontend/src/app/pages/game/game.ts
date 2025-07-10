@@ -73,24 +73,30 @@ export class Game implements OnInit, OnDestroy {
   private keystates: Set<string> = new Set();
   loading: boolean = true;
 
+  // Goal celebration
+  showGoalCelebration: boolean = false;
+  goalCelebrationTimer: any;
+
   // Subscriptions
   private socketSub: Subscription | null = null;
 
   constructor(
     private api: Api,
     private socketService: SocketService,
-    private router: Router,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadGameState();
     this.setupGameServiceSubscriptions();
-    // Removed periodic score refresh to prevent overriding correct values
   }
 
   ngOnDestroy(): void {
     this.socketSub?.unsubscribe();
-    // Removed score refresh timer cleanup since we no longer use it
+    // Clean up goal celebration timer
+    if (this.goalCelebrationTimer) {
+      clearTimeout(this.goalCelebrationTimer);
+    }
   }
 
   private setupGameServiceSubscriptions(): void {
@@ -99,7 +105,9 @@ export class Game implements OnInit, OnDestroy {
       .subscribe((event) => {
         if (
           event.eventType === 'position_update' ||
-          event.eventType === 'goal_scored'
+          event.eventType === 'goal_scored' ||
+          event.eventType === 'game_resumed' ||
+          event.eventType === 'ball_repositioned'
         ) {
           // Update game state directly - the game field component will handle interpolation
           if (event.gameState.ball) {
@@ -118,9 +126,9 @@ export class Game implements OnInit, OnDestroy {
             this.score.team2 = event.gameState.team2.score;
           }
 
-          // Log goal events
+          // Handle goal events with celebration
           if (event.eventType === 'goal_scored') {
-            console.log('Goal scored! New score:', this.score);
+            this.triggerGoalCelebration();
           }
         }
       });
@@ -144,10 +152,6 @@ export class Game implements OnInit, OnDestroy {
           team1: game.state.team1?.score || 0,
           team2: game.state.team2?.score || 0,
         };
-        console.log(
-          `FRONTEND: Initial API load - Team1: ${this.score.team1}, Team2: ${this.score.team2}`,
-        );
-
         this.config = game.config;
         this.team = game.meta.team;
         this.activeRod = game.meta.activeRod;
@@ -158,6 +162,21 @@ export class Game implements OnInit, OnDestroy {
         this.router.navigate(['/']);
       },
     });
+  }
+
+  private triggerGoalCelebration(): void {
+    // Show the goal celebration overlay
+    this.showGoalCelebration = true;
+
+    // Clear any existing timer
+    if (this.goalCelebrationTimer) {
+      clearTimeout(this.goalCelebrationTimer);
+    }
+
+    // Hide the celebration after 3 seconds
+    this.goalCelebrationTimer = setTimeout(() => {
+      this.showGoalCelebration = false;
+    }, 3000);
   }
 
   onKeyPresses(event: KeyboardEvent) {

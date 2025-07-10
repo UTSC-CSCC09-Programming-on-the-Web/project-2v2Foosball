@@ -5,7 +5,12 @@ export interface GameInit {
 }
 
 export interface GameEvent {
-  eventType: 'position_update' | 'direction_update' | 'goal_scored';
+  eventType:
+    | 'position_update'
+    | 'direction_update'
+    | 'goal_scored'
+    | 'game_resumed'
+    | 'ball_repositioned';
   gameState: GameState;
 }
 
