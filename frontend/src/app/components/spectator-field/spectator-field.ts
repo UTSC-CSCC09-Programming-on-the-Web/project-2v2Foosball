@@ -38,9 +38,6 @@ export class SpectatorFieldComponent
   };
   @Input({ required: true }) config!: GameConfig;
 
-  // Track last update time for debugging
-  private lastUpdateTime = 0;
-
   constructor() {}
 
   ngAfterViewInit(): void {
@@ -61,9 +58,6 @@ export class SpectatorFieldComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Redraw whenever any input changes (delayed state updates)
-    this.lastUpdateTime = Date.now();
-
     if (this.ctx) {
       this.draw();
     }
