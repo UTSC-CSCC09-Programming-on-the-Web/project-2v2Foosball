@@ -82,9 +82,9 @@ export class Game implements OnInit, OnDestroy {
     console.log('Game constructor - initial state:', {
       ball: this.ball,
       rods: this.rods,
-      config: this.config
+      config: this.config,
     });
-    
+
     this.api.getGame().subscribe({
       next: (game) => {
         console.log('Game data received:', game);
@@ -105,11 +105,11 @@ export class Game implements OnInit, OnDestroy {
         this.config = game.config;
         this.team = game.meta.team;
         this.activeRod = game.meta.activeRod;
-        
+
         console.log('Game state after setting:', {
           ball: this.ball,
           rods: this.rods,
-          config: this.config
+          config: this.config,
         });
       },
       error: (err) => {
@@ -131,7 +131,10 @@ export class Game implements OnInit, OnDestroy {
     this.socketSub = this.socketService
       .listen<GameEvent>('game.updated')
       .subscribe((event) => {
-        if (event.eventType === 'position_update' || event.eventType === 'goal_scored') {
+        if (
+          event.eventType === 'position_update' ||
+          event.eventType === 'goal_scored'
+        ) {
           // Update game state directly - the game field component will handle interpolation
           if (event.gameState.ball) {
             this.ball = { ...event.gameState.ball };
@@ -148,7 +151,7 @@ export class Game implements OnInit, OnDestroy {
           if (event.gameState.team2?.score !== undefined) {
             this.score.team2 = event.gameState.team2.score;
           }
-          
+
           // Log goal events
           if (event.eventType === 'goal_scored') {
             console.log('Goal scored! New score:', this.score);

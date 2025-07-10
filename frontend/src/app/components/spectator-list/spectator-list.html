@@ -12,7 +12,7 @@
   </div>
 
   <div *ngIf="error" class="error">
-    <h3>⚠️ {{ error }}</h3>
+    <h3>{{ error }}</h3>
     <button (click)="refreshGames()">Try Again</button>
   </div>
 
@@ -29,15 +29,15 @@
       (click)="spectateGame(game.gameId)"
     >
       <div class="game-header">
-        <div class="game-score">
-          {{ game.score.team1 }} - {{ game.score.team2 }}
-        </div>
         <div class="game-duration">{{ getGameDuration(game.startTime) }}</div>
       </div>
 
       <div class="teams">
         <div class="team team1">
-          <h4>Team 1</h4>
+          <div class="team-header">
+            <h4>Team 1</h4>
+            <div class="team-score">{{ game.score.team1 }}</div>
+          </div>
           <div class="players">
             <div class="player" *ngFor="let player of game.players.team1">
               <img [src]="player.avatar" [alt]="player.name" class="avatar" />
@@ -49,7 +49,10 @@
         <div class="vs">VS</div>
 
         <div class="team team2">
-          <h4>Team 2</h4>
+          <div class="team-header">
+            <h4>Team 2</h4>
+            <div class="team-score">{{ game.score.team2 }}</div>
+          </div>
           <div class="players">
             <div class="player" *ngFor="let player of game.players.team2">
               <img [src]="player.avatar" [alt]="player.name" class="avatar" />

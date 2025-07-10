@@ -12,6 +12,8 @@
     h2 {
       color: #2c3e50;
       margin: 0;
+      font-weight: 600;
+      font-size: 1.75rem;
     }
 
     .refresh-btn {
@@ -19,9 +21,11 @@
       background: #3498db;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
 
       &:hover:not(:disabled) {
         background: #2980b9;
@@ -87,15 +91,9 @@
 
       .game-header {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
         margin-bottom: 1rem;
-
-        .game-score {
-          font-size: 1.2rem;
-          font-weight: bold;
-          color: #2c3e50;
-        }
 
         .game-duration {
           background: #ecf0f1;
@@ -115,11 +113,31 @@
         .team {
           flex: 1;
 
-          h4 {
-            margin: 0 0 0.5rem 0;
-            color: #34495e;
-            font-size: 0.8rem;
-            text-transform: uppercase;
+          .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+
+            h4 {
+              margin: 0;
+              color: #34495e;
+              font-size: 0.8rem;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+            }
+
+            .team-score {
+              font-size: 1.5rem;
+              font-weight: 700;
+              color: #2c3e50;
+              background: #ecf0f1;
+              padding: 0.25rem 0.5rem;
+              border-radius: 8px;
+              min-width: 30px;
+              text-align: center;
+            }
           }
 
           .players {
@@ -137,7 +155,8 @@
               }
 
               span {
-                font-size: 0.8rem;
+                font-size: 0.85rem;
+                font-weight: 400;
                 color: #2c3e50;
               }
             }
@@ -145,9 +164,10 @@
         }
 
         .vs {
-          font-weight: bold;
+          font-weight: 700;
           color: #e74c3c;
           font-size: 0.9rem;
+          letter-spacing: 0.1em;
         }
       }
 
@@ -161,11 +181,12 @@
         .spectator-count {
           color: #7f8c8d;
           font-size: 0.8rem;
+          font-weight: 400;
         }
 
         .spectate-btn {
           color: #3498db;
-          font-weight: 500;
+          font-weight: 600;
           font-size: 0.8rem;
         }
       }

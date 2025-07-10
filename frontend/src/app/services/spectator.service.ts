@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { SocketService } from './socket.service';
 import { environment } from '../../environments/environment';
 
@@ -22,6 +22,8 @@ export interface ActiveGame {
   providedIn: 'root',
 })
 export class SpectatorService {
+  private currentGameId = new BehaviorSubject<string | null>(null);
+
   constructor(
     private http: HttpClient,
     private socketService: SocketService,
@@ -32,6 +34,21 @@ export class SpectatorService {
     return this.http.get<ActiveGame[]>(
       `${environment.apiUrl}/spectator/active-games`,
     );
+  }
+
+  // Set the current game being spectated
+  setCurrentGame(gameId: string): void {
+    this.currentGameId.next(gameId);
+  }
+
+  // Get the current game being spectated
+  getCurrentGame(): Observable<string | null> {
+    return this.currentGameId.asObservable();
+  }
+
+  // Clear the current game
+  clearCurrentGame(): void {
+    this.currentGameId.next(null);
   }
 
   // Join spectating a specific game via socket

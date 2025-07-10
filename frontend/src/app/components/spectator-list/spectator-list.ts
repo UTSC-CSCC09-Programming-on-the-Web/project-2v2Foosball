@@ -21,7 +21,7 @@ export class SpectatorListComponent implements OnInit, OnDestroy {
   constructor(
     private spectatorService: SpectatorService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {

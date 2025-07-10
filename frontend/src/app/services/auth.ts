@@ -13,7 +13,10 @@ import { asyncScheduler, scheduled } from 'rxjs';
 export class AuthService {
   user: User | null = null;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+  ) {}
 
   // Redirect to backend for login with GitHub
   login(provider: 'github'): void {
@@ -25,7 +28,7 @@ export class AuthService {
     return this.http.post(
       `${environment.apiUrl}/auth/${endpoint}`,
       {},
-      { withCredentials: true }
+      { withCredentials: true },
     );
   }
 
@@ -56,7 +59,7 @@ export class AuthService {
           return throwError(() => {
             return new Error('User not authenticated');
           });
-        })
+        }),
       );
   }
 }

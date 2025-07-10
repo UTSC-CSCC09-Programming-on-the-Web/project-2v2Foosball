@@ -38,6 +38,7 @@ function spectatorUpdateFunction(gameId) {
   const delayedState = spectatorService.getSpectatorState(gameId);
   if (delayedState) {
     const gameData = games.get(gameId);
+
     io.to(`spectator-${gameId}`).emit("spectator.updated", {
       gameId,
       gameState: {

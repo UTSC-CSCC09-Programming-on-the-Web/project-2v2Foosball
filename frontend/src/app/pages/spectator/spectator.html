@@ -1,0 +1,40 @@
+<div class="spectator-container">
+  <div class="spectator-header">
+    <button class="back-button" (click)="goBack()">← Back to Games</button>
+    <div class="spectator-info">
+      <h2>Spectating Game</h2>
+      <div class="spectator-count">
+        <span class="icon">👀</span>
+        <span
+          >{{ spectatorCount }} Spectator{{ spectatorCount !== 1 ? 's' : ''
+          }}</span
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="game-content" *ngIf="!isLoading && !error">
+    <div class="scoreboard-container">
+      <app-scoreboard
+        [score]="{ team1: gameInfo?.score?.team1 || 0, team2: gameInfo?.score?.team2 || 0 }"
+        [maxScore]="5"
+      >
+      </app-scoreboard>
+    </div>
+
+    <div class="game-field-container">
+      <app-spectator-field [ball]="ball" [rods]="rods" [config]="config">
+      </app-spectator-field>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Connecting to game...</p>
+  </div>
+
+  <div class="error" *ngIf="error">
+    <p>{{ error }}</p>
+    <button (click)="goBack()">Go Back</button>
+  </div>
+</div>
