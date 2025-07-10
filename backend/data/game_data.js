@@ -306,7 +306,7 @@ function pauseGameForCelebration(game, gameId) {
   game.state.ball.vx = 0;
   game.state.ball.vy = 0;
 
-  // After 3 seconds (celebration complete), reset ball position but keep it paused
+  // After 3 seconds (celebration complete), reset ball position and rods but keep it paused
   setTimeout(() => {
     // Reset ball to center position but with no velocity (still paused)
     game.state.ball.x = game.config.fieldWidth / 2;
@@ -314,7 +314,10 @@ function pauseGameForCelebration(game, gameId) {
     game.state.ball.vx = 0;
     game.state.ball.vy = 0;
 
-    // Emit ball repositioned event to show the ball in center
+    // Reset rods to their default positions
+    resetRodsToDefault(game);
+
+    // Emit ball repositioned event to show the ball in center and rods reset
     io.to(`game-${gameId}`).emit("game.updated", {
       eventType: "ball_repositioned",
       gameState: {
@@ -397,6 +400,26 @@ function resetBall(game) {
   const randomVelocity = getRandomBallVelocity();
   game.state.ball.vx = randomVelocity.vx;
   game.state.ball.vy = randomVelocity.vy;
+}
+
+function resetRodsToDefault(game) {
+  // Reset team1 rods to default positions
+  game.state.team1.rods[0].vy = 0;
+  game.state.team1.rods[0].figures[0].y = 250;
+
+  game.state.team1.rods[1].vy = 0;
+  game.state.team1.rods[1].figures[0].y = 100;
+  game.state.team1.rods[1].figures[1].y = 250;
+  game.state.team1.rods[1].figures[2].y = 400;
+
+  // Reset team2 rods to default positions
+  game.state.team2.rods[0].vy = 0;
+  game.state.team2.rods[0].figures[0].y = 100;
+  game.state.team2.rods[0].figures[1].y = 250;
+  game.state.team2.rods[0].figures[2].y = 400;
+
+  game.state.team2.rods[1].vy = 0;
+  game.state.team2.rods[1].figures[0].y = 250;
 }
 
 function endGame(game) {
