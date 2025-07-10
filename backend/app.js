@@ -67,8 +67,18 @@ Game.findAll({
   },
 }).then((gs) => {
   gs.forEach((game) => {
-    console.log("Restoring game:", game.dataValues.gameId);
-    addNewGame(game.dataValues.gameId);
+    console.log(
+      "Restoring game:",
+      game.dataValues.gameId,
+      "with scores:",
+      game.dataValues.score1,
+      "-",
+      game.dataValues.score2,
+    );
+    addNewGame(game.dataValues.gameId, {
+      team1: game.dataValues.score1,
+      team2: game.dataValues.score2,
+    });
   });
 });
 

@@ -38,11 +38,44 @@ export class SpectatorListComponent implements OnInit, OnDestroy {
   }
 
   private startUpdateTimer(): void {
-    // Update the time display every second
     this.updateTimer = setInterval(() => {
-      // Trigger change detection to update the displayed times
+      // Always trigger change detection to update the displayed times
       this.cdr.detectChanges();
+      this.refreshGameData();
     }, 1000);
+  }
+
+  private refreshGameData(): void {
+    // Silently refresh the game data without showing loading state
+    const sub = this.spectatorService.getActiveGames().subscribe({
+      next: (games) => {
+        // Update scores and other game data while preserving existing games
+        games.forEach((updatedGame) => {
+          const existingGame = this.activeGames.find(
+            (g) => g.gameId === updatedGame.gameId,
+          );
+          if (existingGame) {
+            // Update the scores and other data
+            existingGame.score = updatedGame.score;
+            existingGame.players = updatedGame.players;
+            // Keep the existing spectatorCount as it's updated via socket
+          } else {
+            // New game appeared
+            this.activeGames.push(updatedGame);
+          }
+        });
+
+        // Remove games that no longer exist
+        this.activeGames = this.activeGames.filter((game) =>
+          games.some((g) => g.gameId === game.gameId),
+        );
+      },
+      error: (err) => {
+        console.error('Error refreshing game data:', err);
+      },
+    });
+
+    this.subscriptions.push(sub);
   }
 
   private loadActiveGames(): void {

@@ -1,5 +1,6 @@
 import { io } from "../app.js";
 import { spectatorService } from "./spectator.js";
+import { Game } from "../models/game.js";
 
 export const userToGameMap = new Map();
 
@@ -16,7 +17,7 @@ function gameFunction(gameId) {
   updateGamePhysics(game);
   checkBounds(game);
   checkCollisions(game);
-  checkGoals(game);
+  checkGoals(game, gameId);
 
   updateRods(game, 1);
   updateRods(game, 2);
@@ -218,7 +219,7 @@ function checkCollisions(game) {
   }
 }
 
-function checkGoals(game) {
+function checkGoals(game, gameId) {
   const ball = game.state.ball;
   const { fieldWidth, fieldHeight, goalWidth, goalHeight, ballRadius } =
     game.config;
@@ -227,22 +228,61 @@ function checkGoals(game) {
   const goalTop = fieldHeight / 2 - goalHeight / 2;
   const goalBottom = fieldHeight / 2 + goalHeight / 2;
 
+  let goalScored = false;
+
   if (
     ball.x < leftGoalX + ballRadius &&
     ball.y >= goalTop &&
     ball.y <= goalBottom
   ) {
-    // Ball is in left goal
+    // Ball is in left goal - Team 2 scores
     game.state.team2.score += 1;
+    goalScored = true;
+
+    // Update database
+    updateGameScoreInDatabase(
+      gameId,
+      game.state.team1.score,
+      game.state.team2.score,
+    );
+
     resetBall(game);
   } else if (
     ball.x > rightGoalX - ballRadius &&
     ball.y >= goalTop &&
     ball.y <= goalBottom
   ) {
-    // Ball is in right goal
+    // Ball is in right goal - Team 1 scores
     game.state.team1.score += 1;
+    goalScored = true;
+
+    // Update database
+    updateGameScoreInDatabase(
+      gameId,
+      game.state.team1.score,
+      game.state.team2.score,
+    );
+
     resetBall(game);
+  }
+
+  // If a goal was scored, immediately emit the updated game state
+  if (goalScored) {
+    // Emit to players
+    io.to(`game-${gameId}`).emit("game.updated", {
+      eventType: "goal_scored",
+      gameState: {
+        ball: game.state.ball,
+        team1: {
+          score: game.state.team1.score,
+          rods: game.state.team1.rods,
+        },
+        team2: {
+          score: game.state.team2.score,
+          rods: game.state.team2.rods,
+        },
+      },
+    });
   }
 }
 
@@ -264,14 +304,25 @@ function resetBall(game) {
 function endGame(game) {
   // TODO: End game logic
 }
-export function addNewGame(gameId) {
+export function addNewGame(gameId, initialScores = null) {
   if (games.has(gameId)) {
     console.error(`Game with ID ${gameId} already exists.`);
     return;
   }
 
+  const gameDefaults = { ...GAME_DEFAULTS };
+
+  // If initial scores are provided, use them instead of defaults
+  if (initialScores) {
+    gameDefaults.state.team1.score = initialScores.team1 || 0;
+    gameDefaults.state.team2.score = initialScores.team2 || 0;
+    console.log(
+      `Initializing game ${gameId} with scores: Team1=${initialScores.team1}, Team2=${initialScores.team2}`,
+    );
+  }
+
   games.set(gameId, {
-    ...GAME_DEFAULTS,
+    ...gameDefaults,
     gameFunction: setInterval(() => gameFunction(gameId), 1000 / 60),
     updateFunction: setInterval(() => updateFunction(gameId), 1000 / 30),
     spectatorFunction: setInterval(
@@ -366,3 +417,25 @@ export const GAME_DEFAULTS = {
     },
   },
 };
+
+// Function to update game scores in the database
+async function updateGameScoreInDatabase(gameId, team1Score, team2Score) {
+  try {
+    await Game.update(
+      {
+        score1: team1Score,
+        score2: team2Score,
+      },
+      {
+        where: {
+          gameId: gameId,
+        },
+      },
+    );
+  } catch (error) {
+    console.error(
+      `Error updating game score in database for game ${gameId}:`,
+      error,
+    );
+  }
+}

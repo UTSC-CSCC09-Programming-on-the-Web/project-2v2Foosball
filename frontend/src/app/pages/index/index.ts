@@ -42,7 +42,6 @@ export class Index implements OnInit, OnDestroy {
     this.socketService.listen('game.joined').subscribe((game) => {
       this.isQueued = false;
       this.router.navigate(['/game']);
-      console.log('Game joined:', game);
     });
   }
 

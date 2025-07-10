@@ -1,5 +1,11 @@
 <div class="col-8">
   <div class="game-section">
+    @if (loading) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading game...</p>
+    </div>
+    } @else {
     <div class="scoreboard-container">
       <app-scoreboard [score]="score" [maxScore]="config.maxScore || 5">
       </app-scoreboard>
@@ -15,5 +21,6 @@
       >
       </app-game-field>
     </div>
+    }
   </div>
 </div>

@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { ScoreboardComponent } from '../../components/scoreboard/scoreboard';
@@ -10,7 +11,7 @@ import { GameEvent, GameConfig } from '../../types/game';
 
 @Component({
   selector: 'app-game',
-  imports: [ScoreboardComponent, GameFieldComponent],
+  imports: [CommonModule, ScoreboardComponent, GameFieldComponent],
   templateUrl: './game.html',
   styleUrl: './game.scss',
 })
@@ -70,6 +71,7 @@ export class Game implements OnInit, OnDestroy {
   team: 1 | 2 = 1;
   activeRod: 1 | 2 = 1;
   private keystates: Set<string> = new Set();
+  loading: boolean = true;
 
   // Subscriptions
   private socketSub: Subscription | null = null;
@@ -78,53 +80,17 @@ export class Game implements OnInit, OnDestroy {
     private api: Api,
     private socketService: SocketService,
     private router: Router,
-  ) {
-    console.log('Game constructor - initial state:', {
-      ball: this.ball,
-      rods: this.rods,
-      config: this.config,
-    });
-
-    this.api.getGame().subscribe({
-      next: (game) => {
-        console.log('Game data received:', game);
-        this.ball = game.state.ball || {
-          x: 0,
-          y: 0,
-          vx: 0,
-          vy: 0,
-        };
-        this.rods = {
-          team1: game.state.team1?.rods || [],
-          team2: game.state.team2?.rods || [],
-        };
-        this.score = {
-          team1: game.state.team1?.score || 0,
-          team2: game.state.team2?.score || 0,
-        };
-        this.config = game.config;
-        this.team = game.meta.team;
-        this.activeRod = game.meta.activeRod;
-
-        console.log('Game state after setting:', {
-          ball: this.ball,
-          rods: this.rods,
-          config: this.config,
-        });
-      },
-      error: (err) => {
-        console.error('Failed to load game state:', err);
-        this.router.navigate(['/']);
-      },
-    });
-  }
+  ) {}
 
   ngOnInit(): void {
+    this.loadGameState();
     this.setupGameServiceSubscriptions();
+    // Removed periodic score refresh to prevent overriding correct values
   }
 
   ngOnDestroy(): void {
     this.socketSub?.unsubscribe();
+    // Removed score refresh timer cleanup since we no longer use it
   }
 
   private setupGameServiceSubscriptions(): void {
@@ -158,6 +124,40 @@ export class Game implements OnInit, OnDestroy {
           }
         }
       });
+  }
+
+  private loadGameState(): void {
+    this.loading = true;
+    this.api.getGame().subscribe({
+      next: (game) => {
+        this.ball = game.state.ball || {
+          x: 0,
+          y: 0,
+          vx: 0,
+          vy: 0,
+        };
+        this.rods = {
+          team1: game.state.team1?.rods || [],
+          team2: game.state.team2?.rods || [],
+        };
+        this.score = {
+          team1: game.state.team1?.score || 0,
+          team2: game.state.team2?.score || 0,
+        };
+        console.log(
+          `FRONTEND: Initial API load - Team1: ${this.score.team1}, Team2: ${this.score.team2}`,
+        );
+
+        this.config = game.config;
+        this.team = game.meta.team;
+        this.activeRod = game.meta.activeRod;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load game state:', err);
+        this.router.navigate(['/']);
+      },
+    });
   }
 
   onKeyPresses(event: KeyboardEvent) {
