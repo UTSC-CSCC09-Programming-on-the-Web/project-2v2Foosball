@@ -214,7 +214,8 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: gradientShift 2s ease-in-out infinite,
+  animation:
+    gradientShift 2s ease-in-out infinite,
     pulseScale 1.5s ease-in-out infinite;
 }
 

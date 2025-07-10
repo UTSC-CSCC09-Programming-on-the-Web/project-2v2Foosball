@@ -83,7 +83,7 @@ export class Game implements OnInit, OnDestroy {
   constructor(
     private api: Api,
     private socketService: SocketService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
