@@ -63,7 +63,7 @@ export class Game implements OnInit, OnDestroy {
     rodHeight: 500,
     ballRadius: 10,
     figureRadius: 12,
-    maxScore: 5,
+    maxScore: 1,
     rodSpeed: 5,
     ballSpeed: 10,
   };
@@ -72,10 +72,16 @@ export class Game implements OnInit, OnDestroy {
   activeRod: 1 | 2 = 1;
   private keystates: Set<string> = new Set();
   loading: boolean = true;
+  private receivedInitialState: boolean = false;
 
   // Goal celebration
   showGoalCelebration: boolean = false;
   goalCelebrationTimer: any;
+
+  // Game end screen
+  showGameEndScreen: boolean = false;
+  gameWinner: 1 | 2 | null = null;
+  finalScore: { team1: number; team2: number } | null = null;
 
   // Subscriptions
   private socketSub: Subscription | null = null;
@@ -87,8 +93,9 @@ export class Game implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.loadGameState();
     this.setupGameServiceSubscriptions();
+    // Always load game state from API to ensure correct scores
+    this.loadGameState();
   }
 
   ngOnDestroy(): void {
@@ -107,8 +114,25 @@ export class Game implements OnInit, OnDestroy {
           event.eventType === 'position_update' ||
           event.eventType === 'goal_scored' ||
           event.eventType === 'game_resumed' ||
-          event.eventType === 'ball_repositioned'
+          event.eventType === 'ball_repositioned' ||
+          event.eventType === 'initial_state'
         ) {
+          // Reset game end state if this is an initial state (new game)
+          if (event.eventType === 'initial_state') {
+            this.showGameEndScreen = false;
+            this.gameWinner = null;
+            this.finalScore = null;
+            this.showGoalCelebration = false;
+            this.loading = false;
+            this.receivedInitialState = true;
+
+            // Reset scores to 0-0 for new game
+            this.score = { team1: 0, team2: 0 };
+
+            // Force reload game state from API to ensure fresh data
+            this.loadGameState();
+          }
+
           // Update game state directly - the game field component will handle interpolation
           if (event.gameState.ball) {
             this.ball = { ...event.gameState.ball };
@@ -119,17 +143,24 @@ export class Game implements OnInit, OnDestroy {
           if (event.gameState.team2?.rods) {
             this.rods.team2 = [...event.gameState.team2.rods];
           }
-          if (event.gameState.team1?.score !== undefined) {
-            this.score.team1 = event.gameState.team1.score;
-          }
-          if (event.gameState.team2?.score !== undefined) {
-            this.score.team2 = event.gameState.team2.score;
+
+          // Only update scores for actual gameplay events, not initial_state
+          if (event.eventType !== 'initial_state') {
+            if (event.gameState.team1?.score !== undefined) {
+              this.score.team1 = event.gameState.team1.score;
+            }
+            if (event.gameState.team2?.score !== undefined) {
+              this.score.team2 = event.gameState.team2.score;
+            }
           }
 
           // Handle goal events with celebration
           if (event.eventType === 'goal_scored') {
             this.triggerGoalCelebration();
           }
+        } else if (event.eventType === 'game_ended') {
+          // Handle game ending
+          this.handleGameEnd(event.gameState);
         }
       });
   }
@@ -177,6 +208,37 @@ export class Game implements OnInit, OnDestroy {
     this.goalCelebrationTimer = setTimeout(() => {
       this.showGoalCelebration = false;
     }, 3000);
+  }
+
+  private handleGameEnd(gameState: any): void {
+    // Hide any goal celebration
+    this.showGoalCelebration = false;
+    if (this.goalCelebrationTimer) {
+      clearTimeout(this.goalCelebrationTimer);
+    }
+
+    // Set up game end screen data
+    this.gameWinner = gameState.winner;
+    this.finalScore = gameState.finalScore || {
+      team1: gameState.team1?.score || 0,
+      team2: gameState.team2?.score || 0,
+    };
+
+    // Show the game end screen
+    this.showGameEndScreen = true;
+
+    // Update final scores in the component state
+    if (gameState.team1?.score !== undefined) {
+      this.score.team1 = gameState.team1.score;
+    }
+    if (gameState.team2?.score !== undefined) {
+      this.score.team2 = gameState.team2.score;
+    }
+  }
+
+  returnToMainMenu(): void {
+    // Navigate back to the main menu/queue page
+    this.router.navigate(['/']);
   }
 
   onKeyPresses(event: KeyboardEvent) {

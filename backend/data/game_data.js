@@ -1,6 +1,7 @@
 import { io } from "../app.js";
 import { spectatorService } from "./spectator.js";
 import { Game } from "../models/game.js";
+import { Player } from "../models/players.js";
 
 export const userToGameMap = new Map();
 
@@ -235,14 +236,33 @@ function checkGoals(game, gameId) {
 
   let goalScored = false;
 
-  if (
+  // Check if ball is in goal area
+  const ballInLeftGoal =
     ball.x < leftGoalX + ballRadius &&
     ball.y >= goalTop &&
-    ball.y <= goalBottom
-  ) {
+    ball.y <= goalBottom;
+
+  const ballInRightGoal =
+    ball.x > rightGoalX - ballRadius &&
+    ball.y >= goalTop &&
+    ball.y <= goalBottom;
+
+  // If ball is not in any goal area, reset the goal flag
+  if (!ballInLeftGoal && !ballInRightGoal) {
+    game.state.goalJustScored = false;
+    return;
+  }
+
+  // If a goal was already scored this round, don't score again
+  if (game.state.goalJustScored) {
+    return;
+  }
+
+  if (ballInLeftGoal) {
     // Ball is in left goal - Team 2 scores
     game.state.team2.score += 1;
     goalScored = true;
+    game.state.goalJustScored = true;
 
     // Update database
     updateGameScoreInDatabase(
@@ -251,16 +271,20 @@ function checkGoals(game, gameId) {
       game.state.team2.score,
     );
 
-    // Pause the game for celebration
-    pauseGameForCelebration(game, gameId);
-  } else if (
-    ball.x > rightGoalX - ballRadius &&
-    ball.y >= goalTop &&
-    ball.y <= goalBottom
-  ) {
+    // Check if game should end
+    if (game.state.team2.score >= game.config.maxScore) {
+      // Game over - Team 2 wins
+      endGame(game, gameId);
+      return; // Don't continue with celebration, game is over
+    } else {
+      // Pause the game for celebration
+      pauseGameForCelebration(game, gameId);
+    }
+  } else if (ballInRightGoal) {
     // Ball is in right goal - Team 1 scores
     game.state.team1.score += 1;
     goalScored = true;
+    game.state.goalJustScored = true;
 
     // Update database
     updateGameScoreInDatabase(
@@ -269,11 +293,18 @@ function checkGoals(game, gameId) {
       game.state.team2.score,
     );
 
-    // Pause the game for celebration
-    pauseGameForCelebration(game, gameId);
+    // Check if game should end
+    if (game.state.team1.score >= game.config.maxScore) {
+      // Game over - Team 1 wins
+      endGame(game, gameId);
+      return; // Don't continue with celebration, game is over
+    } else {
+      // Pause the game for celebration
+      pauseGameForCelebration(game, gameId);
+    }
   }
 
-  // If a goal was scored, immediately emit the updated game state
+  // If a goal was scored and game didn't end, emit the updated game state
   if (goalScored) {
     // Emit to players
     io.to(`game-${gameId}`).emit("game.updated", {
@@ -385,13 +416,6 @@ function getRandomBallVelocity(ballSpeed = 5) {
 }
 
 function resetBall(game) {
-  if (
-    game.state.team1.score >= game.config.maxScore ||
-    game.state.team2.score >= game.config.maxScore
-  ) {
-    // Reset scores if max score is reached
-    endGame(game);
-  }
   // Basic reset logic after a goal
   game.state.ball.x = game.config.fieldWidth / 2;
   game.state.ball.y = game.config.fieldHeight / 2;
@@ -422,21 +446,139 @@ function resetRodsToDefault(game) {
   game.state.team2.rods[1].figures[0].y = 250;
 }
 
-function endGame(game) {
-  // TODO: End game logic
+async function endGame(game, gameId) {
+  console.log(
+    `Game ${gameId} is ending. Final scores: Team1=${game.state.team1.score}, Team2=${game.state.team2.score}`,
+  );
+
+  // Determine the winner
+  const winner = game.state.team1.score > game.state.team2.score ? 1 : 2;
+
+  // Update game status in database to "finished"
+  try {
+    await Game.update(
+      {
+        status: "finished",
+      },
+      {
+        where: {
+          gameId: gameId,
+        },
+      },
+    );
+    console.log(`Game ${gameId} status updated to finished in database`);
+  } catch (error) {
+    console.error(`Error updating game status for game ${gameId}:`, error);
+  }
+
+  // Emit game ended event to all players and spectators
+  io.to(`game-${gameId}`).emit("game.updated", {
+    eventType: "game_ended",
+    gameState: {
+      ball: game.state.ball,
+      team1: {
+        score: game.state.team1.score,
+        rods: game.state.team1.rods,
+      },
+      team2: {
+        score: game.state.team2.score,
+        rods: game.state.team2.rods,
+      },
+      winner: winner,
+      finalScore: {
+        team1: game.state.team1.score,
+        team2: game.state.team2.score,
+      },
+    },
+  });
+
+  // Also notify spectators
+  io.to(`spectator-${gameId}`).emit("spectator.updated", {
+    gameId,
+    eventType: "game_ended",
+    gameState: {
+      ball: game.state.ball,
+      rods: {
+        team1: game.state.team1.rods,
+        team2: game.state.team2.rods,
+      },
+      config: game.config,
+      gameInfo: {
+        score: {
+          team1: game.state.team1.score,
+          team2: game.state.team2.score,
+        },
+        winner: winner,
+        gameEnded: true,
+      },
+    },
+  });
+
+  // Clear all game intervals immediately
+  if (game.gameFunction) {
+    clearInterval(game.gameFunction);
+  }
+  if (game.updateFunction) {
+    clearInterval(game.updateFunction);
+  }
+  if (game.spectatorFunction) {
+    clearInterval(game.spectatorFunction);
+  }
+  if (game.state.pauseTimer) {
+    clearTimeout(game.state.pauseTimer);
+  }
+
+  // Immediately remove game from games map to prevent reuse
+  games.delete(gameId);
+  console.log(`Game ${gameId} immediately removed from active games`);
+
+  // Immediately remove players from this game to prevent new game creation issues
+  try {
+    // Get players before updating their gameId to null
+    const playersInGame = await Player.findAll({
+      where: {
+        gameId: gameId,
+      },
+    });
+
+    // Remove players from userToGameMap
+    for (const player of playersInGame) {
+      userToGameMap.delete(player.userId);
+      console.log(`User ${player.userId} removed from userToGameMap`);
+    }
+
+    await Player.update(
+      { gameId: null },
+      {
+        where: {
+          gameId: gameId,
+        },
+      },
+    );
+    console.log(`Players immediately removed from game ${gameId}`);
+  } catch (error) {
+    console.error(`Error removing players from game ${gameId}:`, error);
+  }
 }
+
 export function addNewGame(gameId, initialScores = null) {
   if (games.has(gameId)) {
     console.error(`Game with ID ${gameId} already exists.`);
     return;
   }
 
-  const gameDefaults = { ...GAME_DEFAULTS };
+  // Create a deep copy of game defaults to ensure fresh state
+  const gameDefaults = JSON.parse(JSON.stringify(GAME_DEFAULTS));
 
   // Set random initial ball velocity
   const randomVelocity = getRandomBallVelocity();
   gameDefaults.state.ball.vx = randomVelocity.vx;
   gameDefaults.state.ball.vy = randomVelocity.vy;
+
+  // Ensure scores are always 0 for new games
+  gameDefaults.state.team1.score = 0;
+  gameDefaults.state.team2.score = 0;
+  gameDefaults.state.goalJustScored = false;
 
   // If initial scores are provided, use them instead of defaults
   if (initialScores) {
@@ -444,6 +586,10 @@ export function addNewGame(gameId, initialScores = null) {
     gameDefaults.state.team2.score = initialScores.team2 || 0;
     console.log(
       `Initializing game ${gameId} with scores: Team1=${initialScores.team1}, Team2=${initialScores.team2}`,
+    );
+  } else {
+    console.log(
+      `Initializing new game ${gameId} with fresh state: Team1=0, Team2=0`,
     );
   }
 
@@ -468,13 +614,14 @@ export const GAME_DEFAULTS = {
     rodHeight: 500,
     ballRadius: 10,
     figureRadius: 12,
-    maxScore: 5,
+    maxScore: 1,
     rodSpeed: 5,
     ballSpeed: 10,
   },
   state: {
     isPaused: false,
     pauseTimer: null,
+    goalJustScored: false,
     ball: {
       x: 600,
       y: 250,

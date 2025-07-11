@@ -31,6 +31,11 @@ export class SpectatorPage implements OnInit, OnDestroy {
   };
   private isFirstScoreUpdate: boolean = true;
 
+  // Game end screen
+  showGameEndScreen: boolean = false;
+  gameWinner: 1 | 2 | null = null;
+  finalScore: { team1: number; team2: number } | null = null;
+
   // Game state for child components - this will be updated with delayed state
   ball: BallState = {
     x: 600,
@@ -137,6 +142,12 @@ export class SpectatorPage implements OnInit, OnDestroy {
     const updateSub = this.spectatorService.onSpectatorUpdate().subscribe({
       next: (data) => {
         if (data.gameId === this.gameId) {
+          // Check if this is a game ended event
+          if (data.eventType === 'game_ended') {
+            this.handleGameEnd(data.gameState);
+            return;
+          }
+
           // Apply the delayed state directly without any interpolation
           this.updateGameStateDirectly(data.gameState);
           this.isLoading = false;
@@ -174,10 +185,7 @@ export class SpectatorPage implements OnInit, OnDestroy {
     const gameEndSub = this.spectatorService.onSpectatorGameEnded().subscribe({
       next: (data) => {
         if (data.gameId === this.gameId) {
-          this.error = 'Game has ended';
-          setTimeout(() => {
-            this.router.navigate(['/']);
-          }, 3000);
+          this.handleGameEnd(data.gameState || data);
         }
       },
     });
@@ -251,6 +259,31 @@ export class SpectatorPage implements OnInit, OnDestroy {
     this.goalCelebrationTimer = setTimeout(() => {
       this.showGoalCelebration = false;
     }, 3000);
+  }
+
+  private handleGameEnd(gameData: any): void {
+    // Hide any goal celebration
+    this.showGoalCelebration = false;
+    if (this.goalCelebrationTimer) {
+      clearTimeout(this.goalCelebrationTimer);
+    }
+
+    // Set up game end screen data
+    this.gameWinner = gameData.gameInfo?.winner || gameData.winner;
+    this.finalScore = gameData.gameInfo?.score ||
+      gameData.finalScore || {
+        team1: gameData.gameInfo?.score?.team1 || 0,
+        team2: gameData.gameInfo?.score?.team2 || 0,
+      };
+
+    // Show the game end screen
+    this.showGameEndScreen = true;
+    this.cdr.detectChanges();
+  }
+
+  returnToMainMenu(): void {
+    // Navigate back to the main menu/queue page
+    this.router.navigate(['/']);
   }
 
   goBack(): void {
