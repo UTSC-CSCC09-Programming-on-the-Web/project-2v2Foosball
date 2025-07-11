@@ -36,3 +36,11 @@
   background-color: #dc3545;
   color: rgb(245, 231, 191);
 }
+
+.btn:disabled,
+.btn.disabled {
+  background-color: #6c757d;
+  color: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}

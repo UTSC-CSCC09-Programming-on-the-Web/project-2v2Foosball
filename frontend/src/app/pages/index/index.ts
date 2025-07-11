@@ -19,6 +19,7 @@ import { Router } from '@angular/router';
 export class Index implements OnInit, OnDestroy {
   user!: User;
   isQueued: boolean = false;
+  isInGame: boolean = false;
   queue: User[] = [];
   private queueSocketSub: Subscription | null = null;
 
@@ -31,6 +32,7 @@ export class Index implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.checkUserInQueue();
+    this.checkUserInGame();
     this.printQueue();
 
     this.queueSocketSub = this.socketService
@@ -72,6 +74,12 @@ export class Index implements OnInit, OnDestroy {
   checkUserInQueue(): void {
     this.api.isUserInQueue().subscribe((isInQueue) => {
       this.isQueued = isInQueue;
+    });
+  }
+
+  checkUserInGame(): void {
+    this.api.isUserInGame().subscribe((isInGame) => {
+      this.isInGame = isInGame;
     });
   }
 }
