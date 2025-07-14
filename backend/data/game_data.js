@@ -396,7 +396,6 @@ function pauseGameForCelebration(game, gameId) {
 function getRandomBallVelocity(ballSpeed = 5) {
   // Generate random angle that avoids purely vertical movement
   // Exclude angles that would make the ball go straight up/down
-  // Use angles between -60° to 60° and 120° to 240° (in radians)
   const excludeVerticalZone = Math.PI / 3; // 60 degrees in radians
 
   let angle;
@@ -584,13 +583,6 @@ export function addNewGame(gameId, initialScores = null) {
   if (initialScores) {
     gameDefaults.state.team1.score = initialScores.team1 || 0;
     gameDefaults.state.team2.score = initialScores.team2 || 0;
-    console.log(
-      `Initializing game ${gameId} with scores: Team1=${initialScores.team1}, Team2=${initialScores.team2}`,
-    );
-  } else {
-    console.log(
-      `Initializing new game ${gameId} with fresh state: Team1=0, Team2=0`,
-    );
   }
 
   games.set(gameId, {
@@ -614,7 +606,7 @@ export const GAME_DEFAULTS = {
     rodHeight: 500,
     ballRadius: 10,
     figureRadius: 12,
-    maxScore: 5,
+    maxScore: 2,
     rodSpeed: 5,
     ballSpeed: 10,
   },
