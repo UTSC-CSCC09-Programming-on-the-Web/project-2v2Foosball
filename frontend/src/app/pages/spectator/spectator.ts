@@ -170,17 +170,6 @@ export class SpectatorPage implements OnInit, OnDestroy {
       },
     });
 
-    // Listen for errors
-    const errorSub = this.spectatorService.onSpectatorError().subscribe({
-      next: (data) => {
-        if (data.gameId === this.gameId) {
-          this.error = data.message || 'Spectator error';
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }
-      },
-    });
-
     // Listen for game end
     const gameEndSub = this.spectatorService.onSpectatorGameEnded().subscribe({
       next: (data) => {
@@ -190,21 +179,12 @@ export class SpectatorPage implements OnInit, OnDestroy {
       },
     });
 
-    this.subscriptions.push(updateSub, countSub, errorSub, gameEndSub);
+    this.subscriptions.push(updateSub, countSub, gameEndSub);
   }
 
   private joinSpectating(): void {
     this.spectatorService.joinSpectating(this.gameId!);
     this.isConnected = true;
-
-    // Set a timeout to show error if no initial state is received
-    setTimeout(() => {
-      if (this.isLoading) {
-        this.error = 'Failed to connect to game';
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      }
-    }, 5000);
   }
 
   private updateGameStateDirectly(gameState: any): void {

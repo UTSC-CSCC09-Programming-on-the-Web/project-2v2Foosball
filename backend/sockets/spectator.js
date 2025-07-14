@@ -58,13 +58,6 @@ export function registerSpectatorListeners(io, socket) {
           },
         },
       });
-    } else {
-      // Game hasn't been running long enough for delayed state
-      socket.emit("spectator.error", {
-        gameId,
-        message:
-          "Game is too new. Please wait a few seconds for spectator delay to build up...",
-      });
     }
 
     // Notify about spectator count update

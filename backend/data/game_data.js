@@ -614,7 +614,7 @@ export const GAME_DEFAULTS = {
     rodHeight: 500,
     ballRadius: 10,
     figureRadius: 12,
-    maxScore: 1,
+    maxScore: 5,
     rodSpeed: 5,
     ballSpeed: 10,
   },
