@@ -25,9 +25,22 @@ gameRouter.get("/", isAuth, async (req, res) => {
   if (player) {
     const game = games.get(player.gameId);
     if (game) {
+      // Get the database record to ensure we have the latest scores
+      const dbGame = await Game.findByPk(player.gameId);
+
       return res.status(200).json({
         config: game.config,
-        state: game.state,
+        state: {
+          ...game.state,
+          team1: {
+            ...game.state.team1,
+            score: dbGame.score1, // Use database score
+          },
+          team2: {
+            ...game.state.team2,
+            score: dbGame.score2, // Use database score
+          },
+        },
         meta: {
           team: player.team,
           activeRod: 1,

@@ -10,6 +10,7 @@ import { checkoutRouter } from "./routes/checkout_router.js";
 import { webhookRouter } from "./routes/webhook_router.js";
 import { queueRouter } from "./routes/queue_router.js";
 import { gameRouter } from "./routes/game_router.js";
+import { spectatorRouter } from "./routes/spectator_router.js";
 import { registerIOListeners } from "./sockets/index.js";
 import { isAuthSocket } from "./middlewares/auth.js";
 
@@ -66,8 +67,18 @@ Game.findAll({
   },
 }).then((gs) => {
   gs.forEach((game) => {
-    console.log("Restoring game:", game.dataValues.gameId);
-    addNewGame(game.dataValues.gameId);
+    console.log(
+      "Restoring game:",
+      game.dataValues.gameId,
+      "with scores:",
+      game.dataValues.score1,
+      "-",
+      game.dataValues.score2,
+    );
+    addNewGame(game.dataValues.gameId, {
+      team1: game.dataValues.score1,
+      team2: game.dataValues.score2,
+    });
   });
 });
 
@@ -76,6 +87,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/checkout", checkoutRouter);
 app.use("/api/queue", queueRouter);
 app.use("/api/game", gameRouter);
+app.use("/api/spectator", spectatorRouter);
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => console.log("Server running"));

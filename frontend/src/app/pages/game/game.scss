@@ -1,0 +1,224 @@
+.game-section {
+  position: relative; // Add relative positioning for absolute overlay
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    min-height: 400px;
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      color: #7f8c8d;
+      font-size: 1.1rem;
+      margin: 0;
+    }
+  }
+}
+
+// Goal celebration overlay styles
+.goal-celebration-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.goal-celebration-content {
+  text-align: center;
+  animation: bounceIn 1s ease-out;
+}
+
+.goal-text {
+  color: #ffeb3b;
+  font-size: 4rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 8px rgba(44, 62, 80, 0.4);
+  margin: 0;
+  letter-spacing: 0.1em;
+  background: none;
+  animation: pulseScale 1.5s ease-in-out infinite;
+}
+
+// Game end screen overlay styles
+.game-end-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001; // Higher than goal celebration
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+.game-end-content {
+  text-align: center;
+  background: #4caf50;
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  animation: slideInUp 0.8s ease-out;
+}
+
+.game-over-title {
+  color: #fff;
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 0 0 1.5rem 0;
+}
+
+.winner-announcement {
+  margin-bottom: 2rem;
+
+  .winner-text {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin: 0 0 0.5rem 0;
+
+    &.victory {
+      color: #ffeb3b;
+      animation: victoryPulse 2s ease-in-out infinite;
+    }
+
+    &.defeat {
+      color: #f44336;
+    }
+  }
+
+  .winner-subtitle {
+    color: #e8eaf6;
+    font-size: 1.3rem;
+    margin: 0;
+    opacity: 0.9;
+  }
+}
+
+.final-score-display {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+
+  h3 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin: 0 0 1rem 0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.score-breakdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+
+  .team-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+
+    &.winner {
+      background: rgba(255, 235, 59, 0.15); // subtle yellow background
+      border: 2.5px solid #ffeb3b; // yellow outline (same as "You Won")
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(255, 235, 59, 0.25);
+    }
+
+    .team-label {
+      color: #e8eaf6;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .score-value {
+      color: #fff;
+      font-size: 2.5rem;
+      font-weight: bold;
+    }
+  }
+
+  .score-separator {
+    color: #fff;
+    font-size: 2rem;
+    font-weight: bold;
+    opacity: 0.7;
+  }
+}
+
+.return-button {
+  background: #2196f3;
+  border: none;
+  border-radius: 50px;
+  color: white;
+  padding: 1rem 2.5rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    background: #1976d2;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

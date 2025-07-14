@@ -1,6 +1,12 @@
 <div class="queue-container">
-  <button *ngIf="!isQueued" (click)="onAddToQueue()" class="btn btn-play">
-    Play
+  <button
+    *ngIf="!isQueued"
+    (click)="onAddToQueue()"
+    [disabled]="isInGame"
+    class="btn btn-play"
+    [class.disabled]="isInGame"
+  >
+    {{ isInGame ? 'In Game' : 'Play' }}
   </button>
   <button *ngIf="isQueued" (click)="onRemoveFromQueue()" class="btn btn-cancel">
     Cancel

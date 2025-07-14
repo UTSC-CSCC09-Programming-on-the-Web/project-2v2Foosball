@@ -5,7 +5,14 @@ export interface GameInit {
 }
 
 export interface GameEvent {
-  eventType: 'position_update' | 'direction_update' | 'goal_scored';
+  eventType:
+    | 'position_update'
+    | 'direction_update'
+    | 'goal_scored'
+    | 'game_resumed'
+    | 'ball_repositioned'
+    | 'game_ended'
+    | 'initial_state';
   gameState: GameState;
 }
 
@@ -18,6 +25,11 @@ export interface GameState {
   team2?: {
     rods?: PlayerRodState[];
     score?: number;
+  };
+  winner?: 1 | 2;
+  finalScore?: {
+    team1: number;
+    team2: number;
   };
 }
 

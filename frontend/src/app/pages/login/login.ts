@@ -23,8 +23,8 @@ export class Login {
     this.authService.login(provider);
   }
 
-  onMockLogin() {
-    this.authService.mockLogin().subscribe(() => {
+  onMockLogin(userNumber: number = 1) {
+    this.authService.mockLogin(userNumber).subscribe(() => {
       this.router.navigate(['/']);
     });
   }

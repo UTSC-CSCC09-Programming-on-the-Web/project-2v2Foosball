@@ -5,6 +5,7 @@ import { authGuard } from './guards/auth-guard';
 import { Membership } from './pages/membership/membership';
 import { loginGuard } from './guards/login-guard';
 import { Game } from './pages/game/game';
+import { SpectatorPage } from './pages/spectator/spectator';
 
 export const routes: Routes = [
   {
@@ -25,6 +26,11 @@ export const routes: Routes = [
   {
     path: 'game',
     component: Game,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'spectator',
+    component: SpectatorPage,
     canActivate: [authGuard],
   },
   {

@@ -5,7 +5,7 @@ import { passport } from "../passport.js";
 import { stripe } from "../stripe.js";
 import { isAuth } from "../middlewares/auth.js";
 import { User } from "../models/users.js";
-import { MOCK_USER } from "../data/mock.js";
+import { MOCK_USER, MOCK_USER_2 } from "../data/mock.js";
 
 export const authRouter = express.Router();
 
@@ -72,6 +72,24 @@ authRouter.post("/mock", (req, res) => {
   return res.json({ message: "Mock user logged in successfully" });
 });
 
+authRouter.post("/mock2", (req, res) => {
+  if (process.env.NODE_ENV !== "development") {
+    return res.status(403).json({ message: "Wrong place." });
+  }
+
+  const token = signToken(MOCK_USER_2);
+
+  res.cookie("authtoken", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    domain: new URL(process.env.BACKEND_URL).hostname,
+  });
+
+  return res.json({ message: "Mock user 2 logged in successfully" });
+});
+
 authRouter.get("/me", isAuth, async (req, res) => {
   console.log(req.user.userId, MOCK_USER.userId);
   if (
@@ -81,6 +99,16 @@ authRouter.get("/me", isAuth, async (req, res) => {
     return res.json({
       ...MOCK_USER,
       active: true, // Mock user is always active
+    });
+  }
+
+  if (
+    process.env.NODE_ENV === "development" &&
+    req.user.userId === MOCK_USER_2.userId
+  ) {
+    return res.json({
+      ...MOCK_USER_2,
+      active: true, // Mock user 2 is always active
     });
   }
 

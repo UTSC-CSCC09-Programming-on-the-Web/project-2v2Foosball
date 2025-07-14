@@ -23,9 +23,10 @@ export class AuthService {
     window.location.href = `${environment.apiUrl}/auth/github`;
   }
 
-  mockLogin(): Observable<any> {
+  mockLogin(userNumber: number = 1): Observable<any> {
+    const endpoint = userNumber === 2 ? 'mock2' : 'mock';
     return this.http.post(
-      `${environment.apiUrl}/auth/mock`,
+      `${environment.apiUrl}/auth/${endpoint}`,
       {},
       { withCredentials: true },
     );

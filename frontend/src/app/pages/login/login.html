@@ -33,9 +33,21 @@
       </button>
 
       @if (isMockEnv) {
-      <button class="mock-login-btn" (click)="onMockLogin()" type="button">
-        <span>Continue with Mock Login</span>
-      </button>
+      <div class="mock-login-section">
+        <div class="mock-divider">
+          <span>Development Only</span>
+        </div>
+        <button class="mock-login-btn" (click)="onMockLogin(1)" type="button">
+          <span>Continue as Mock User 1</span>
+        </button>
+        <button
+          class="mock-login-btn mock-user-2"
+          (click)="onMockLogin(2)"
+          type="button"
+        >
+          <span>Continue as Mock User 2</span>
+        </button>
+      </div>
       }
     </div>
   </div>

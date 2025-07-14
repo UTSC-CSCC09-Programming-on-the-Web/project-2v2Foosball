@@ -51,6 +51,15 @@ export class Api {
       .pipe(switchMap((response) => [response.isInQueue]));
   }
 
+  // Check if User is in an active game
+  isUserInGame(): Observable<boolean> {
+    return this.http
+      .get<{ isInGame: boolean }>(`${environment.apiUrl}/queue/userInGame`, {
+        withCredentials: true,
+      })
+      .pipe(switchMap((response) => [response.isInGame]));
+  }
+
   getGame(): Observable<GameInit> {
     return this.http.get<GameInit>(`${environment.apiUrl}/game`, {
       withCredentials: true,
