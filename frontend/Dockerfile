@@ -1,27 +1,12 @@
-FROM node:20-alpine
-
-# Set working directory
+FROM node:20-alpine AS build
 WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies
 RUN npm ci
-
-# Copy source code
 COPY . .
+RUN npm run build
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+FROM nginx:1.29-alpine
+COPY --from=build /app/dist/frontend /usr/share/nginx/html
 
-# Change ownership of the app directory
-RUN chown -R nodejs:nodejs /app
-USER nodejs
-
-# Expose port
-EXPOSE 4200
-
-# Start the development server
-CMD ["npm", "run", "start", "--", "--host", "0.0.0.0", "--port", "4200"]
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

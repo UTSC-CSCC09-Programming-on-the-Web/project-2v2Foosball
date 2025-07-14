@@ -1,24 +1,16 @@
 FROM node:20-alpine
-
-# Set working directory
 WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --include=dev
-
-# Copy source code
+RUN npm ci
 COPY . .
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+RUN addgroup -g 1001 -S backend_user
+RUN adduser -S backend_user -u 1001
 
 # Change ownership of the app directory
-RUN chown -R nodejs:nodejs /app
-USER nodejs
+RUN chown -R backend_user:backend_user /app
+USER backend_user
 
 # Expose port
 EXPOSE 3000

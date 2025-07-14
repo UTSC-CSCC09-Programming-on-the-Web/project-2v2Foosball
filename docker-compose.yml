@@ -1,38 +1,69 @@
 services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./vhost:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+    networks:
+      - foosball-network
+
+  nginx-proxy-acme:
+    image: nginxproxy/acme-companion
+    container_name: nginx-proxy-acme
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./vhost:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+      - ./acme:/etc/acme.sh
+    environment:
+      - DEFAULT_EMAIL=example@email.com
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+    depends_on:
+      - nginx-proxy
+    networks:
+      - foosball-network
+
   # PostgreSQL Database
   db:
     image: postgres:15
     container_name: db
+    restart: always
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: postgres
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    expose:
+      - 5432
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
       - foosball-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   # Express Backend
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/utsc-cscc09-programming-on-the-web/2025summer-foosball-backend:latest
     container_name: backend
-    ports:
-      - "3000:3000"
+    restart: always
+    expose:
+      - 3000
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
-      BACKEND_URL: ${BACKEND_URL:-http://localhost:3000}
-      PORT: ${PORT:-3000}
-      DATABASE_URL: ${DATABASE_URL:-postgres://admin:password@db:5432/postgres}
+      NODE_ENV: production
+      FRONTEND_URL: ${FRONTEND_URL}
+      BACKEND_URL: ${BACKEND_URL}
+      PORT: ${PORT}
+      DATABASE_URL: ${DATABASE_URL}
 
       OAUTH_GITHUB_CLIENT_ID: ${OAUTH_GITHUB_CLIENT_ID}
       OAUTH_GITHUB_CLIENT_SECRET: ${OAUTH_GITHUB_CLIENT_SECRET}
@@ -41,53 +72,31 @@ services:
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       STRIPE_MEMBERSHIP_PRODUCT_ID: ${STRIPE_MEMBERSHIP_PRODUCT_ID}
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+
+      VIRTUAL_HOST: <api.PUBLIC_URL>
+      LETSENCRYPT_HOST: <api.PUBLIC_URL>
     depends_on:
       db:
         condition: service_healthy
     networks:
       - foosball-network
-    command: npm run start:dev
 
   # Angular Frontend
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/utsc-cscc09-programming-on-the-web/2025summer-foosball-frontend:latest
     container_name: frontend
-    ports:
-      - "4200:4200"
+    restart: always
+    expose:
+      - 80
     environment:
-      - NODE_ENV=development
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.angular
-    networks:
-      - foosball-network
-    command:
-      ["npm", "run", "start", "--", "--host", "0.0.0.0", "--port", "4200"]
-
-  # Stripe CLI for webhook testing
-  stripe-cli:
-    image: stripe/stripe-cli:latest
-    container_name: stripe-cli
-    environment:
-      STRIPE_API_KEY: ${STRIPE_API_KEY}
-    command: >
-      listen
-      --api-key ${STRIPE_API_KEY}
-      --skip-verify
-      --forward-to http://backend:3000/api/webhook/stripe
-    depends_on:
-      - backend
+      VIRTUAL_HOST: <PUBLIC_URL>
+      LETSENCRYPT_HOST: <PUBLIC_URL>
     networks:
       - foosball-network
 
 volumes:
   db_data:
+    driver: local
 
 networks:
   foosball-network:
