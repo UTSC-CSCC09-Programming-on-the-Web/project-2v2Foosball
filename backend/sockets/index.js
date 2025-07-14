@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import { registerQueueListeners } from "./queue.js";
 import { registerGameListeners } from "./game.js";
+import { registerSpectatorListeners } from "./spectator.js";
 import { Player } from "../models/players.js";
 import { userToGameMap } from "../data/game_data.js";
 import { Game } from "../models/game.js";
@@ -47,5 +48,6 @@ export function registerIOListeners(io) {
 
     registerQueueListeners(io, socket);
     registerGameListeners(io, socket);
+    registerSpectatorListeners(io, socket);
   });
 }

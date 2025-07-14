@@ -12,6 +12,7 @@ import { User } from '../../types/user';
 export class QueueComponent {
   @Input() user!: User;
   @Input() isQueued: boolean = false;
+  @Input() isInGame: boolean = false;
   @Input() queue: User[] = [];
   @Output() addToQueue = new EventEmitter<User>();
   @Output() removeFromQueue = new EventEmitter<User>();

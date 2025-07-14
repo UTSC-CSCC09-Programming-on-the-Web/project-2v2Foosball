@@ -1,5 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { queue } from "../data/queue_data.js";
+import { userToGameMap } from "../data/game_data.js";
 
 /**
  *
@@ -8,9 +9,15 @@ import { queue } from "../data/queue_data.js";
  */
 export function registerQueueListeners(io, socket) {
   socket.on("queue.join", () => {
+    const user = socket.user;
+
+    // Don't allow users already in a game to join queue
+    if (userToGameMap.has(user.userId)) {
+      return;
+    }
+
     // Use a room for the queue so we can broadcast updates only to queue members
     socket.join("queue");
-    const user = socket.user;
 
     user.socketId = socket.id;
     queue.push(user);

@@ -3,9 +3,13 @@
   <app-queue
     [user]="user"
     [isQueued]="isQueued"
+    [isInGame]="isInGame"
     [queue]="queue"
     (addToQueue)="addToQueue()"
     (removeFromQueue)="removeFromQueue()"
     class="col-2"
   ></app-queue>
+
+  <div class="placeholder" class="col-6"></div>
+  <app-spectator-list class="col-4"></app-spectator-list>
 </div>

@@ -158,16 +158,16 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
 
     // Initialize interpolated rod states
     this.interpolatedRods = {
-      team1: this.rods.team1.map(rod => ({
+      team1: this.rods.team1.map((rod) => ({
         ...rod,
-        figures: rod.figures.map(figure => ({
+        figures: rod.figures.map((figure) => ({
           ...figure,
           targetY: figure.y,
         })),
       })),
-      team2: this.rods.team2.map(rod => ({
+      team2: this.rods.team2.map((rod) => ({
         ...rod,
-        figures: rod.figures.map(figure => ({
+        figures: rod.figures.map((figure) => ({
           ...figure,
           targetY: figure.y,
         })),
@@ -195,7 +195,9 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
           this.interpolatedRods[teamKey][rodIndex].vy = rod.vy;
           rod.figures.forEach((figure, figureIndex) => {
             if (this.interpolatedRods[teamKey][rodIndex].figures[figureIndex]) {
-              this.interpolatedRods[teamKey][rodIndex].figures[figureIndex].targetY = figure.y;
+              this.interpolatedRods[teamKey][rodIndex].figures[
+                figureIndex
+              ].targetY = figure.y;
             }
           });
         }
@@ -213,8 +215,12 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     }
 
     // Interpolate ball position
-    this.interpolatedBall.x += (this.interpolatedBall.targetX - this.interpolatedBall.x) * this.interpolationSpeed;
-    this.interpolatedBall.y += (this.interpolatedBall.targetY - this.interpolatedBall.y) * this.interpolationSpeed;
+    this.interpolatedBall.x +=
+      (this.interpolatedBall.targetX - this.interpolatedBall.x) *
+      this.interpolationSpeed;
+    this.interpolatedBall.y +=
+      (this.interpolatedBall.targetY - this.interpolatedBall.y) *
+      this.interpolationSpeed;
 
     // Interpolate figure positions
     ['team1', 'team2'].forEach((team) => {
@@ -232,14 +238,14 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     this.drawField();
     this.drawFieldMarkings();
     this.drawGoals();
-    
+
     // Always ensure interpolation is initialized before drawing
     if (!this.interpolatedBall || !this.interpolatedRods) {
       if (this.ball && this.rods && this.rods.team1 && this.rods.team2) {
         this.initializeInterpolation();
       }
     }
-    
+
     // Use interpolated rendering for smooth animation
     if (this.interpolatedBall && this.interpolatedRods) {
       this.drawBall();
@@ -340,7 +346,7 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   private drawBall(): void {
     const ball = this.interpolatedBall;
-    
+
     // Ball shadow
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
     this.ctx.beginPath();
@@ -356,13 +362,7 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     // Ball body
     this.ctx.fillStyle = '#ffffff';
     this.ctx.beginPath();
-    this.ctx.arc(
-      ball.x,
-      ball.y,
-      this.config.ballRadius,
-      0,
-      2 * Math.PI,
-    );
+    this.ctx.arc(ball.x, ball.y, this.config.ballRadius, 0, 2 * Math.PI);
     this.ctx.fill();
 
     // Ball outline
@@ -383,7 +383,11 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     });
   }
 
-  private drawRod(rod: InterpolatedPlayerRodState, color: string, active: boolean): void {
+  private drawRod(
+    rod: InterpolatedPlayerRodState,
+    color: string,
+    active: boolean,
+  ): void {
     // Draw the rod itself
     this.ctx.strokeStyle = active ? '#000000' : '#888888';
     this.ctx.lineWidth = this.config.rodWidth;
@@ -398,7 +402,11 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     });
   }
 
-  private drawFigure(x: number, figure: InterpolatedFigureState, color: string): void {
+  private drawFigure(
+    x: number,
+    figure: InterpolatedFigureState,
+    color: string,
+  ): void {
     // Figure shadow
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
     this.ctx.beginPath();

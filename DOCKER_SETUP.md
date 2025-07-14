@@ -1,4 +1,5 @@
 # Setup with Docker
+
 Have a `.env` file in the root directory with the following variables set:
 
 ```bash
@@ -15,7 +16,9 @@ STRIPE_SECRET_KEY=
 STRIPE_MEMBERSHIP_PRODUCT_ID=
 STRIPE_WEBHOOK_SECRET=
 ```
+
 Note the different `DATABASE_URL` and new `STRIPE_API_KEY` variable. Then, in the root directory, run:
+
 ```
 docker compose up -d
 ```

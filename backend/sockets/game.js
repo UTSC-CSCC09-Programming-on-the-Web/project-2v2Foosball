@@ -17,21 +17,89 @@ export function registerGameListeners(io, socket) {
       io.emit("queue.updated", queue);
 
       // Create a game object
-      const game = await Game.create();
-      players.forEach(async (player, i) => {
-        await Player.create({
-          userId: player.userId,
-          gameId: game.gameId,
-          team: i + 1, // Assign teams 1 and 2
-        });
-
-        userToGameMap.set(player.userId, game.gameId);
-        addNewGame(game.gameId);
-
-        // Move players to a game room
-        io.sockets.sockets.get(player.socketId).join(`game-${game.gameId}`);
-        io.to(player.socketId).emit("game.joined", game.gameId);
+      const game = await Game.create({
+        score1: 0,
+        score2: 0,
       });
+
+      // Add the new game to memory once
+      addNewGame(game.gameId);
+
+      for (const [i, player] of players.entries()) {
+        try {
+          await Player.create({
+            userId: player.userId,
+            gameId: game.gameId,
+            team: i + 1, // Assign teams 1 and 2
+          });
+
+          userToGameMap.set(player.userId, game.gameId);
+
+          // Move players to a game room
+          io.sockets.sockets.get(player.socketId).join(`game-${game.gameId}`);
+          io.to(player.socketId).emit("game.joined", game.gameId);
+
+          // Send initial game state to the player
+          const gameState = games.get(game.gameId);
+          if (gameState) {
+            io.to(player.socketId).emit("game.updated", {
+              eventType: "initial_state",
+              gameState: {
+                ball: gameState.state.ball,
+                team1: {
+                  score: gameState.state.team1.score,
+                  rods: gameState.state.team1.rods,
+                },
+                team2: {
+                  score: gameState.state.team2.score,
+                  rods: gameState.state.team2.rods,
+                },
+              },
+            });
+          }
+        } catch (error) {
+          console.error(
+            `Error creating player ${player.userId} for game ${game.gameId}:`,
+            error,
+          );
+          // If there's an error, it might be because the player still has a game association
+          // Try to clean up and retry
+          await Player.update(
+            { gameId: null },
+            { where: { userId: player.userId } },
+          );
+
+          // Retry player creation
+          await Player.create({
+            userId: player.userId,
+            gameId: game.gameId,
+            team: i + 1,
+          });
+
+          userToGameMap.set(player.userId, game.gameId);
+          io.sockets.sockets.get(player.socketId).join(`game-${game.gameId}`);
+          io.to(player.socketId).emit("game.joined", game.gameId);
+
+          // Send initial game state to the player
+          const gameState = games.get(game.gameId);
+          if (gameState) {
+            io.to(player.socketId).emit("game.updated", {
+              eventType: "initial_state",
+              gameState: {
+                ball: gameState.state.ball,
+                team1: {
+                  score: gameState.state.team1.score,
+                  rods: gameState.state.team1.rods,
+                },
+                team2: {
+                  score: gameState.state.team2.score,
+                  rods: gameState.state.team2.rods,
+                },
+              },
+            });
+          }
+        }
+      }
 
       console.log(
         `Game started with players: ${players.map((p) => p.userId).join(", ")}`,
