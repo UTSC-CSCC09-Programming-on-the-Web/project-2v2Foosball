@@ -23,7 +23,7 @@ services:
       - ./html:/usr/share/nginx/html
       - ./acme:/etc/acme.sh
     environment:
-      - DEFAULT_EMAIL=example@email.com
+      - DEFAULT_EMAIL=yongle.he@mail.utoronto.ca
       - NGINX_PROXY_CONTAINER=nginx-proxy
     depends_on:
       - nginx-proxy
