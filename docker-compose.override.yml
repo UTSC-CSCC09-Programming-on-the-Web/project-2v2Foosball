@@ -1,0 +1,73 @@
+services:
+  nginx-proxy:
+    profiles:
+      - production
+
+  nginx-proxy-acme:
+    profiles:
+      - production
+
+  db:
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Express Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run start:dev
+
+  # Angular Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: build
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.angular
+    command:
+      ["npm", "run", "start", "--", "--host", "0.0.0.0", "--port", "4200"]
+
+  # Stripe CLI for webhook testing
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: stripe-cli
+    environment:
+      STRIPE_API_KEY: ${STRIPE_API_KEY}
+    command: >
+      listen
+      --api-key ${STRIPE_API_KEY}
+      --skip-verify
+      --forward-to http://backend:3000/api/webhook/stripe
+    depends_on:
+      - backend
+    networks:
+      - foosball-network
+
+volumes:
+  db_data:
+
+networks:
+  foosball-network:
+    driver: bridge
