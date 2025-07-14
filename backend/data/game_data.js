@@ -446,31 +446,10 @@ function resetRodsToDefault(game) {
 }
 
 async function endGame(game, gameId) {
-  console.log(
-    `Game ${gameId} is ending. Final scores: Team1=${game.state.team1.score}, Team2=${game.state.team2.score}`,
-  );
-
   // Determine the winner
   const winner = game.state.team1.score > game.state.team2.score ? 1 : 2;
 
-  // Update game status in database to "finished"
-  try {
-    await Game.update(
-      {
-        status: "finished",
-      },
-      {
-        where: {
-          gameId: gameId,
-        },
-      },
-    );
-    console.log(`Game ${gameId} status updated to finished in database`);
-  } catch (error) {
-    console.error(`Error updating game status for game ${gameId}:`, error);
-  }
-
-  // Emit game ended event to all players and spectators
+  // Emit game ended event to all players
   io.to(`game-${gameId}`).emit("game.updated", {
     eventType: "game_ended",
     gameState: {
@@ -491,45 +470,64 @@ async function endGame(game, gameId) {
     },
   });
 
-  // Also notify spectators
-  io.to(`spectator-${gameId}`).emit("spectator.updated", {
-    gameId,
-    eventType: "game_ended",
-    gameState: {
-      ball: game.state.ball,
-      rods: {
-        team1: game.state.team1.rods,
-        team2: game.state.team2.rods,
-      },
-      config: game.config,
-      gameInfo: {
-        score: {
-          team1: game.state.team1.score,
-          team2: game.state.team2.score,
+  // Notify spectators after 5 second delay to match the spectator buffer
+  setTimeout(() => {
+    io.to(`spectator-${gameId}`).emit("spectator.updated", {
+      gameId,
+      eventType: "game_ended",
+      gameState: {
+        ball: game.state.ball,
+        rods: {
+          team1: game.state.team1.rods,
+          team2: game.state.team2.rods,
         },
-        winner: winner,
-        gameEnded: true,
+        config: game.config,
+        gameInfo: {
+          score: {
+            team1: game.state.team1.score,
+            team2: game.state.team2.score,
+          },
+          winner: winner,
+          gameEnded: true,
+        },
       },
-    },
-  });
+    });
 
-  // Clear all game intervals immediately
+    // Now cleanup spectator resources after end-game event is sent
+    if (game.spectatorFunction) {
+      clearInterval(game.spectatorFunction);
+    }
+
+    // Remove game from games map after spectators have received end-game event
+    games.delete(gameId);
+  }, 5000);
+
+  // Update game status in database to "finished"
+  try {
+    await Game.update(
+      {
+        status: "finished",
+      },
+      {
+        where: {
+          gameId: gameId,
+        },
+      },
+    );
+  } catch (error) {
+    console.error(`Error updating game status for game ${gameId}:`, error);
+  }
+
+  // Clear player-related game intervals immediately (but keep spectator interval running)
   if (game.gameFunction) {
     clearInterval(game.gameFunction);
   }
   if (game.updateFunction) {
     clearInterval(game.updateFunction);
   }
-  if (game.spectatorFunction) {
-    clearInterval(game.spectatorFunction);
-  }
   if (game.state.pauseTimer) {
     clearTimeout(game.state.pauseTimer);
   }
-
-  // Immediately remove game from games map to prevent reuse
-  games.delete(gameId);
-  console.log(`Game ${gameId} immediately removed from active games`);
 
   // Immediately remove players from this game to prevent new game creation issues
   try {
@@ -543,18 +541,7 @@ async function endGame(game, gameId) {
     // Remove players from userToGameMap
     for (const player of playersInGame) {
       userToGameMap.delete(player.userId);
-      console.log(`User ${player.userId} removed from userToGameMap`);
     }
-
-    await Player.update(
-      { gameId: null },
-      {
-        where: {
-          gameId: gameId,
-        },
-      },
-    );
-    console.log(`Players immediately removed from game ${gameId}`);
   } catch (error) {
     console.error(`Error removing players from game ${gameId}:`, error);
   }
@@ -606,7 +593,7 @@ export const GAME_DEFAULTS = {
     rodHeight: 500,
     ballRadius: 10,
     figureRadius: 12,
-    maxScore: 2,
+    maxScore: 5,
     rodSpeed: 5,
     ballSpeed: 10,
   },
