@@ -73,8 +73,8 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       STRIPE_MEMBERSHIP_PRODUCT_ID: ${STRIPE_MEMBERSHIP_PRODUCT_ID}
 
-      VIRTUAL_HOST: <api.PUBLIC_URL>
-      LETSENCRYPT_HOST: <api.PUBLIC_URL>
+      VIRTUAL_HOST: api.foosball.games
+      LETSENCRYPT_HOST: api.foosball.games
     depends_on:
       db:
         condition: service_healthy
@@ -89,8 +89,8 @@ services:
     expose:
       - 80
     environment:
-      VIRTUAL_HOST: <PUBLIC_URL>
-      LETSENCRYPT_HOST: <PUBLIC_URL>
+      VIRTUAL_HOST: foosball.games
+      LETSENCRYPT_HOST: foosball.games
     networks:
       - foosball-network
 
