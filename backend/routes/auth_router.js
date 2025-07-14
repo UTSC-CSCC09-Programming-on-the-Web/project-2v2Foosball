@@ -103,7 +103,7 @@ authRouter.post("/logout", isAuth, (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    domain: new URL(process.env.FRONTEND_URL).hostname,
+    domain: new URL(process.env.BACKEND_URL).hostname,
   });
 
   res.json({ message: "Logged out successfully" });
