@@ -19,7 +19,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      frontend: ${{ steps.changes.outputs.frontend == 'true' ||github.event_name == 'workflow_dispatch' }}
+      frontend: ${{ steps.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch' }}
       backend: ${{ steps.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch' }}
       compose: ${{ steps.changes.outputs.compose == 'true' || github.event_name == 'workflow_dispatch' }}
     steps:
@@ -68,7 +68,7 @@ jobs:
         with:
           context: ./frontend
           push: true
-          tags: ${{ steps.meta.output.tags }}
+          tags: ${{ steps.meta.outputs.tags }}
 
       # - name: Build image
       #   run: docker build . --file Dockerfile --tag $FRONTEND_IMAGE
@@ -121,13 +121,13 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ${{ steps.meta.output.tags }}
+          tags: ${{ steps.meta.outputs.tags }}
 
   # Deploy only after all builds complete (or if only compose changed)
   deploy:
     runs-on: ubuntu-latest
     needs: [changes, build-frontend, build-backend]
-    if: always() && (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.compose == 'true')
+    if: always() && needs.changes.result == 'success' && (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.compose == 'true')
     steps:
       - uses: actions/checkout@v4
 
