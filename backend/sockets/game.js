@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io";
 import { queue } from "../data/queue_data.js";
 import { Game } from "../models/game.js";
 import { Player } from "../models/players.js";
+import { GameAction } from "../models/game_actions.js";
 import { addNewGame, games, userToGameMap } from "../data/game_data.js";
 
 /**
@@ -143,6 +144,26 @@ export function registerGameListeners(io, socket) {
           },
         },
       });
+
+
+      // Store the action in the database
+      try {
+        await GameAction.create({
+          gameId,
+          elapsedMs: Date.now() - game.startTime,
+          type: type === "keydown" ? "player_input_start" : "player_input_end",
+          userId,
+          data: {
+            key,
+            activeRod,
+          },
+        });
+      } catch (error) {
+        console.error(
+          `Error storing game action for user ${userId} in game ${gameId}:`,
+          error,
+        );
+      }
     }
   });
 }

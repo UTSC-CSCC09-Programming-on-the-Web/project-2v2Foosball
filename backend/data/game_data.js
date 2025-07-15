@@ -2,6 +2,7 @@ import { io } from "../app.js";
 import { spectatorService } from "./spectator.js";
 import { Game } from "../models/game.js";
 import { Player } from "../models/players.js";
+import { GameAction } from "../models/game_actions.js";
 
 export const userToGameMap = new Map();
 
@@ -545,9 +546,28 @@ async function endGame(game, gameId) {
   } catch (error) {
     console.error(`Error removing players from game ${gameId}:`, error);
   }
+
+  // Game end action logging
+  try {
+    await GameAction.create({
+      gameId,
+      elapsedMs: Date.now() - game.startTime,
+      type: "game_ended",
+      userId: null, // No specific user for game end
+      data: {
+        winner: winner,
+        finalScore: {
+          team1: game.state.team1.score,
+          team2: game.state.team2.score,
+        },
+      },
+    });
+  } catch (error) {
+    console.error(`Error recording game end action for game ${gameId}:`, error);
+  }
 }
 
-export function addNewGame(gameId, initialScores = null) {
+export async function addNewGame(gameId, initialScores = null) {
   if (games.has(gameId)) {
     console.error(`Game with ID ${gameId} already exists.`);
     return;
@@ -580,7 +600,21 @@ export function addNewGame(gameId, initialScores = null) {
       () => spectatorUpdateFunction(gameId),
       spectatorService.SNAPSHOT_INTERVAL,
     ),
+    startTime: Date.now(),
   });
+
+  // Record game start action for replay
+  try {
+    await GameAction.create({
+      gameId,
+      elapsedMs: 0,
+      type: "game_start",
+      userId: null,
+      data: {}, // No additional data needed for game start
+    });
+  } catch (error) {
+    console.error(`Error recording game start action for game ${gameId}:`, error);
+  }
 }
 
 export const GAME_DEFAULTS = {

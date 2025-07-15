@@ -1,0 +1,11 @@
+<div class="replay-list">
+  <h3>Replay List</h3>
+  <button (click)="refreshReplays()">Refresh</button>
+  <ul>
+    <li *ngFor="let replay of replays">
+      <span (click)="startReplay(replay.gameId)">
+        Replay {{ replay.gameId }} | Score: {{ replay.score1 }} - {{ replay.score2 }} | Date: {{ replay.createdAt | date:'short' }}
+      </span>
+    </li>
+  </ul>
+</div>
