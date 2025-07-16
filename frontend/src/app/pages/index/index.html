@@ -1,5 +1,5 @@
 <app-header (logout)="logout()" [user]="user"></app-header>
-<div class="row">
+<div class="app-content">
   <app-queue
     [user]="user"
     [isQueued]="isQueued"
@@ -7,10 +7,13 @@
     [queue]="queue"
     (addToQueue)="addToQueue()"
     (removeFromQueue)="removeFromQueue()"
-    class="col-2"
+    class="queue"
   ></app-queue>
+  <hr/>
 
-  <div class="placeholder" class="col-6"></div>
-  <app-spectator-list class="col-4"></app-spectator-list>
-  <app-replay-list class="col-4"></app-replay-list>
+  <app-spectator-list class="spectator-list"></app-spectator-list>
+
+  <hr/>
+
+  <app-replay-list class="replay-list"></app-replay-list>
 </div>

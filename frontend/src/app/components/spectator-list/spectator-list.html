@@ -12,60 +12,15 @@
   </div>
 
   <div *ngIf="error" class="error">
-    <h3>{{ error }}</h3>
-    <button (click)="refreshGames()">Try Again</button>
+    <h3>{{ this.error }}</h3>
   </div>
 
   <div *ngIf="!loading && !error && activeGames.length === 0" class="no-games">
     <h3>No active games</h3>
     <p>Start playing to see games here!</p>
-    <button (click)="refreshGames()">Refresh</button>
   </div>
 
-  <div *ngIf="!loading && !error && activeGames.length > 0" class="games-list">
-    <div
-      class="game-card"
-      *ngFor="let game of activeGames"
-      (click)="spectateGame(game.gameId)"
-    >
-      <div class="game-header">
-        <div class="game-duration">{{ getGameDuration(game.startTime) }}</div>
-      </div>
-
-      <div class="teams">
-        <div class="team team1">
-          <div class="team-header">
-            <h4>Team 1</h4>
-            <div class="team-score">{{ game.score.team1 }}</div>
-          </div>
-          <div class="players">
-            <div class="player" *ngFor="let player of game.players.team1">
-              <img [src]="player.avatar" [alt]="player.name" class="avatar" />
-              <span>{{ player.name }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="vs">VS</div>
-
-        <div class="team team2">
-          <div class="team-header">
-            <h4>Team 2</h4>
-            <div class="team-score">{{ game.score.team2 }}</div>
-          </div>
-          <div class="players">
-            <div class="player" *ngFor="let player of game.players.team2">
-              <img [src]="player.avatar" [alt]="player.name" class="avatar" />
-              <span>{{ player.name }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="game-footer">
-        <div class="spectator-count">👀 {{ game.spectatorCount }} watching</div>
-        <div class="spectate-btn">Watch →</div>
-      </div>
-    </div>
+  <div *ngIf="!loading && !error && activeGames.length > 0">
+    <app-game-list [games]="activeGames" (clicked)="spectateGame($event)" />
   </div>
 </div>

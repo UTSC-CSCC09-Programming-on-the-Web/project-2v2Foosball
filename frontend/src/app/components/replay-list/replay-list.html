@@ -1,11 +1,26 @@
-<div class="replay-list">
-  <h3>Replay List</h3>
-  <button (click)="refreshReplays()">Refresh</button>
-  <ul>
-    <li *ngFor="let replay of replays">
-      <span (click)="startReplay(replay.gameId)">
-        Replay {{ replay.gameId }} | Score: {{ replay.score1 }} - {{ replay.score2 }} | Date: {{ replay.createdAt | date:'short' }}
-      </span>
-    </li>
-  </ul>
+<div class="replay-list-container">
+  <div class="header">
+    <h2>Past Games</h2>
+    <button class="refresh-btn" (click)="refreshReplays()">
+      {{ loading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading active games...</p>
+  </div>
+
+  <div *ngIf="error" class="error">
+    <h3>{{ this.error }}</h3>
+  </div>
+
+  <div *ngIf="!loading && !error && replays.length === 0" class="no-games">
+    <h3>No games played yet!</h3>
+    <p>Start playing to see games here!</p>
+  </div>
+
+  <div *ngIf="!loading && !error && replays.length > 0">
+    <app-game-list [games]="replays" (clicked)="startReplay($event)" />
+  </div>
 </div>
