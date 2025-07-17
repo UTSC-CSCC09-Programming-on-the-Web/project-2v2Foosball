@@ -340,11 +340,8 @@ function pauseGameForCelebration(game, gameId) {
 
   // After 3 seconds (celebration complete), reset ball position and rods but keep it paused
   setTimeout(() => {
-    // Reset ball to center position but with no velocity (still paused)
-    game.state.ball.x = game.config.fieldWidth / 2;
-    game.state.ball.y = game.config.fieldHeight / 2;
-    game.state.ball.vx = 0;
-    game.state.ball.vy = 0;
+    // Use resetBall to reset ball to center and randomize velocity, but then set velocity to 0 (still paused)
+    resetBall(game);
 
     // Reset rods to their default positions
     resetRodsToDefault(game);
@@ -367,14 +364,28 @@ function pauseGameForCelebration(game, gameId) {
   }, 3000);
 
   // Resume the game after 4 seconds total (3s celebration + 1s with ball visible but stationary)
-  game.state.pauseTimer = setTimeout(() => {
+  game.state.pauseTimer = setTimeout(async () => {
     game.state.isPaused = false;
     game.state.pauseTimer = null;
 
-    // Give the ball initial random velocity to start the game
     const randomVelocity = getRandomBallVelocity();
-    game.state.ball.vx = randomVelocity.vx;
-    game.state.ball.vy = randomVelocity.vy;
+    // Use resetBall to randomize ball direction and position
+    resetBall(game, randomVelocity.vx, randomVelocity.vy);
+
+    // Store the ball randomization event for replay
+    try {
+      await GameAction.create({
+        gameId,
+        elapsedMs: Date.now() - game.startTime,
+        type: "ball_reset",
+        userId: null,
+        data: {
+          ball: { ...game.state.ball },
+        },
+      });
+    } catch (error) {
+      console.error(`Error recording ball randomization for game ${gameId}:`, error);
+    }
 
     // Emit game resumed event
     io.to(`game-${gameId}`).emit("game.updated", {
@@ -415,15 +426,12 @@ function getRandomBallVelocity(ballSpeed = 5) {
   return { vx, vy };
 }
 
-function resetBall(game) {
+function resetBall(game, vx = 0, vy = 0) {
   // Basic reset logic after a goal
   game.state.ball.x = game.config.fieldWidth / 2;
   game.state.ball.y = game.config.fieldHeight / 2;
-
-  // Set random velocity direction
-  const randomVelocity = getRandomBallVelocity();
-  game.state.ball.vx = randomVelocity.vx;
-  game.state.ball.vy = randomVelocity.vy;
+  game.state.ball.vx = vx;
+  game.state.ball.vy = vy;
 }
 
 function resetRodsToDefault(game) {

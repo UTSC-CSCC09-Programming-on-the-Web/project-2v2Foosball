@@ -20,7 +20,7 @@ export const GameAction = sequelize.define(
     },
     type: {
       type: DataTypes.ENUM,
-      values: ['game_start', 'ball_move', 'player_input_start', 'player_input_end', 'goal', 'game_ended'],
+      values: ['game_start', 'player_input_start', 'player_input_end', 'goal', 'game_ended', 'ball_reset'],
       allowNull: false,
     },
     userId: {

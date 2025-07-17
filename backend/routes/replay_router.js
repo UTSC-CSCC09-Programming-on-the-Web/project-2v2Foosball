@@ -104,19 +104,5 @@ replayRouter.get("/actions/:gameId", async (req, res) => {
   }
 });
 
-// Stores a new game action
-// replayRouter.post("/action", async (req, res) => {
-//   const { gameId, elapsedMs, type, userId, data } = req.body;
-//   try {
-//     const action = await GameAction.create({
-//       gameId,
-//       elapsedMs,
-//       type,
-//       userId,
-//       data,
-//     });
-//     return res.status(201).json(action);
-//   } catch (err) {
-//     return res.status(500).json({ error: err.message });
-//   }
-// });
+
+
