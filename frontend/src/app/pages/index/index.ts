@@ -13,7 +13,13 @@ import { ReplayComponent } from '../../components/replay-list/replay-list';
 
 @Component({
   selector: 'app-index',
-  imports: [Header, CommonModule, QueueComponent, SpectatorListComponent, ReplayComponent],
+  imports: [
+    Header,
+    CommonModule,
+    QueueComponent,
+    SpectatorListComponent,
+    ReplayComponent,
+  ],
   templateUrl: './index.html',
   styleUrl: './index.scss',
 })
@@ -28,8 +34,12 @@ export class Index implements OnInit, OnDestroy {
     private authService: AuthService,
     private api: Api,
     private socketService: SocketService,
-    private router: Router,
-  ) {}
+    private router: Router
+  ) {
+    authService.getUser().subscribe((user) => {
+      this.user = user;
+    });
+  }
 
   ngOnInit(): void {
     this.checkUserInQueue();
