@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Replay } from './replay';
+import { ReplayPage } from './replay';
 
 describe('Replay', () => {
-  let component: Replay;
-  let fixture: ComponentFixture<Replay>;
+  let component: ReplayPage;
+  let fixture: ComponentFixture<ReplayPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Replay]
-    })
-    .compileComponents();
+      imports: [ReplayPage],
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(Replay);
+    fixture = TestBed.createComponent(ReplayPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

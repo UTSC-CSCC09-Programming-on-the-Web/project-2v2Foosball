@@ -1,1 +1,48 @@
-<p>replay works!</p>
+<div class="replay-container">
+  <div class="replay-header">
+    <button class="back-button" (click)="goBack()">← Back to Games</button>
+    <div class="replay-info">
+      <h2>Watching Game Replay</h2>
+    </div>
+  </div>
+
+  @if (!isLoading && !error) {
+  <div class="game-content">
+    <div class="scoreboard-container">
+      <app-scoreboard
+        [score]="{ team1: score.team1 || 0, team2: score.team2 || 0 }"
+        [maxScore]="5"
+      >
+      </app-scoreboard>
+    </div>
+
+    <div class="game-field-container">
+      <app-replay-field
+        [ball]="ball"
+        [rods]="rods"
+        [config]="config"
+        (showGoalCelebration)="this.triggerGoalCelebration()"
+      />
+    </div>
+  </div>
+  }
+
+  <app-celebrations
+    [showGoalCelebration]="showGoalCelebration"
+    [showGameEndScreen]="showGameEndScreen"
+    [gameWinner]="gameWinner"
+    [finalScore]="finalScore"
+  />
+
+  @if (isLoading) {
+  <div class="loading">
+    <div class="spinner"></div>
+    <p>Connecting to game...</p>
+  </div>
+  } @if (error) {
+  <div class="error">
+    <p>{{ error }}</p>
+    <button (click)="goBack()">Go Back</button>
+  </div>
+  }
+</div>

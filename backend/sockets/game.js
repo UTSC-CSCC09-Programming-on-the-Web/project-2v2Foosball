@@ -61,13 +61,13 @@ export function registerGameListeners(io, socket) {
         } catch (error) {
           console.error(
             `Error creating player ${player.userId} for game ${game.gameId}:`,
-            error,
+            error
           );
           // If there's an error, it might be because the player still has a game association
           // Try to clean up and retry
           await Player.update(
             { gameId: null },
-            { where: { userId: player.userId } },
+            { where: { userId: player.userId } }
           );
 
           // Retry player creation
@@ -103,7 +103,7 @@ export function registerGameListeners(io, socket) {
       }
 
       console.log(
-        `Game started with players: ${players.map((p) => p.userId).join(", ")}`,
+        `Game started with players: ${players.map((p) => p.userId).join(", ")}`
       );
     }
   }, 1000);
@@ -125,7 +125,7 @@ export function registerGameListeners(io, socket) {
     const game = games.get(gameId);
 
     console.log(
-      `Key ${type === "keydown" ? "pressed" : "lifted"} in game ${gameId}: ${key} by user ${userId} on rod ${activeRod}`,
+      `Key ${type === "keydown" ? "pressed" : "lifted"} in game ${gameId}: ${key} by user ${userId} on rod ${activeRod}`
     );
 
     if (gameId && game && player) {
@@ -145,23 +145,22 @@ export function registerGameListeners(io, socket) {
         },
       });
 
-
       // Store the action in the database
       try {
         await GameAction.create({
           gameId,
           elapsedMs: Date.now() - game.startTime,
           type: type === "keydown" ? "player_input_start" : "player_input_end",
-          userId,
           data: {
             key,
             activeRod,
+            team: player.team,
           },
         });
       } catch (error) {
         console.error(
           `Error storing game action for user ${userId} in game ${gameId}:`,
-          error,
+          error
         );
       }
     }

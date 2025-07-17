@@ -6,6 +6,7 @@ import { Membership } from './pages/membership/membership';
 import { loginGuard } from './guards/login-guard';
 import { Game } from './pages/game/game';
 import { SpectatorPage } from './pages/spectator/spectator';
+import { ReplayPage } from './pages/replay/replay';
 
 export const routes: Routes = [
   {
@@ -31,6 +32,11 @@ export const routes: Routes = [
   {
     path: 'spectator',
     component: SpectatorPage,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'replay',
+    component: ReplayPage,
     canActivate: [authGuard],
   },
   {

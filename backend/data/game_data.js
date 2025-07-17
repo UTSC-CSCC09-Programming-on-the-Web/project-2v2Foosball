@@ -22,8 +22,8 @@ function gameFunction(gameId) {
   }
 
   updateGamePhysics(game);
-  checkBounds(game);
-  checkCollisions(game);
+  checkBounds(game, gameId);
+  checkCollisions(game, gameId);
   checkGoals(game, gameId);
 
   updateRods(game, 1);
@@ -156,7 +156,7 @@ function updateGamePhysics(game) {
   // }
 }
 
-function checkBounds(game) {
+function checkBounds(game, gameId) {
   const ball = game.state.ball;
   const { fieldWidth, fieldHeight, ballRadius } = game.config;
 
@@ -180,7 +180,7 @@ function checkBounds(game) {
   ball.vy = yCheck.vel;
 }
 
-function checkCollisions(game) {
+function checkCollisions(game, gameId) {
   const ball = game.state.ball;
   // If the ball is on the left side of the field, check team1 rods
   if (ball.x < game.config.fieldWidth / 2) {
@@ -269,8 +269,19 @@ function checkGoals(game, gameId) {
     updateGameScoreInDatabase(
       gameId,
       game.state.team1.score,
-      game.state.team2.score,
+      game.state.team2.score
     );
+
+    GameAction.create({
+      gameId,
+      elapsedMs: Date.now() - game.startTime,
+      type: "goal",
+      userId: null,
+      data: {
+        score1: game.state.team1.score,
+        score2: game.state.team2.score,
+      },
+    });
 
     // Check if game should end
     if (game.state.team2.score >= game.config.maxScore) {
@@ -291,8 +302,19 @@ function checkGoals(game, gameId) {
     updateGameScoreInDatabase(
       gameId,
       game.state.team1.score,
-      game.state.team2.score,
+      game.state.team2.score
     );
+
+    GameAction.create({
+      gameId,
+      elapsedMs: Date.now() - game.startTime,
+      type: "goal",
+      userId: null,
+      data: {
+        score1: game.state.team1.score,
+        score2: game.state.team2.score,
+      },
+    });
 
     // Check if game should end
     if (game.state.team1.score >= game.config.maxScore) {
@@ -384,7 +406,10 @@ function pauseGameForCelebration(game, gameId) {
         },
       });
     } catch (error) {
-      console.error(`Error recording ball randomization for game ${gameId}:`, error);
+      console.error(
+        `Error recording ball randomization for game ${gameId}:`,
+        error
+      );
     }
 
     // Emit game resumed event
@@ -521,7 +546,7 @@ async function endGame(game, gameId) {
         where: {
           gameId: gameId,
         },
-      },
+      }
     );
   } catch (error) {
     console.error(`Error updating game status for game ${gameId}:`, error);
@@ -606,7 +631,7 @@ export async function addNewGame(gameId, initialScores = null) {
     updateFunction: setInterval(() => updateFunction(gameId), 1000 / 30),
     spectatorFunction: setInterval(
       () => spectatorUpdateFunction(gameId),
-      spectatorService.SNAPSHOT_INTERVAL,
+      spectatorService.SNAPSHOT_INTERVAL
     ),
     startTime: Date.now(),
   });
@@ -618,10 +643,13 @@ export async function addNewGame(gameId, initialScores = null) {
       elapsedMs: 0,
       type: "game_start",
       userId: null,
-      data: {}, // No additional data needed for game start
+      data: gameDefaults,
     });
   } catch (error) {
-    console.error(`Error recording game start action for game ${gameId}:`, error);
+    console.error(
+      `Error recording game start action for game ${gameId}:`,
+      error
+    );
   }
 }
 
@@ -726,12 +754,12 @@ async function updateGameScoreInDatabase(gameId, team1Score, team2Score) {
         where: {
           gameId: gameId,
         },
-      },
+      }
     );
   } catch (error) {
     console.error(
       `Error updating game score in database for game ${gameId}:`,
-      error,
+      error
     );
   }
 }

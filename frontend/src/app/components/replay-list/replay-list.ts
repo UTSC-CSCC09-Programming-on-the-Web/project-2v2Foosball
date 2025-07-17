@@ -1,9 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReplayService, Replay } from '../../services/replay.service';
+import { ReplayService } from '../../services/replay.service';
 import { AuthService } from '../../services/auth';
 import { GameData } from '../../types/game';
 import { GameList } from '../game-list/game-list';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-replay-list',
@@ -19,7 +20,8 @@ export class ReplayComponent implements OnInit, OnDestroy {
 
   constructor(
     private replayService: ReplayService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -65,17 +67,8 @@ export class ReplayComponent implements OnInit, OnDestroy {
     });
   }
 
-  // TODO: Implement a method to start a replay for a specific gameId
-  // Placeholder for starting a replay
   startReplay(gameId: string): void {
-    this.replayService.getGameActions(gameId).subscribe({
-      next: (actions) => {
-        // Handle the actions for the replay
-        console.log('Replay actions:', actions);
-      },
-      error: (err) => {
-        console.error('Error fetching replay actions:', err);
-      },
-    });
+    this.replayService.setCurrentGame(gameId);
+    this.router.navigate(['/replay']);
   }
 }

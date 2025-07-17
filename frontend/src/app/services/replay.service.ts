@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { GameData } from '../types/game';
+import { ReplayAction } from '../types/replay';
 
 export interface Replay {
   gameId: string;
@@ -15,6 +16,8 @@ export interface Replay {
   providedIn: 'root',
 })
 export class ReplayService {
+  private currentGameId = new BehaviorSubject<string | null>(null);
+
   constructor(private http: HttpClient) {}
 
   // Fetch paginated game history for a user
@@ -25,7 +28,23 @@ export class ReplayService {
   }
 
   // Fetch actions for a specific gameId
-  getGameActions(gameId: string): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/replays/actions/${gameId}`);
+  getGameActions(gameId: string): Observable<ReplayAction[]> {
+    return this.http.get<ReplayAction[]>(
+      `${environment.apiUrl}/replays/actions/${gameId}`
+    );
+  }
+
+  // Set the current game being spectated
+  setCurrentGame(gameId: string): void {
+    this.currentGameId.next(gameId);
+  }
+
+  // Get the current game being spectated
+  getCurrentGame(): Observable<string | null> {
+    return this.currentGameId.asObservable();
+  }
+
+  clearCurrentGame(): void {
+    this.currentGameId.next(null);
   }
 }
