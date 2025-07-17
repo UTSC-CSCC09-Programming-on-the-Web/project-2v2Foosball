@@ -11,6 +11,7 @@ import { webhookRouter } from "./routes/webhook_router.js";
 import { queueRouter } from "./routes/queue_router.js";
 import { gameRouter } from "./routes/game_router.js";
 import { spectatorRouter } from "./routes/spectator_router.js";
+import { replayRouter } from "./routes/replay_router.js";
 import { registerIOListeners } from "./sockets/index.js";
 import { isAuthSocket } from "./middlewares/auth.js";
 
@@ -88,6 +89,7 @@ app.use("/api/checkout", checkoutRouter);
 app.use("/api/queue", queueRouter);
 app.use("/api/game", gameRouter);
 app.use("/api/spectator", spectatorRouter);
+app.use("/api/replays", replayRouter);
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => console.log("Server running"));

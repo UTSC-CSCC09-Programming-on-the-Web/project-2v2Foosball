@@ -67,11 +67,6 @@ export class SpectatorFieldComponent
     // Set canvas size based on config
     this.canvas.width = this.config.fieldWidth;
     this.canvas.height = this.config.fieldHeight;
-
-    // Set canvas display size to fit container
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
-    this.canvas.style.objectFit = 'contain';
   }
 
   private draw(): void {
@@ -94,7 +89,7 @@ export class SpectatorFieldComponent
       0,
       0,
       this.config.fieldWidth,
-      0,
+      0
     );
     gradient.addColorStop(0, '#2e7d32');
     gradient.addColorStop(0.5, '#4caf50');
@@ -121,7 +116,7 @@ export class SpectatorFieldComponent
       this.config.fieldHeight / 2,
       50,
       0,
-      2 * Math.PI,
+      2 * Math.PI
     );
     this.ctx.stroke();
 
@@ -149,7 +144,7 @@ export class SpectatorFieldComponent
       0,
       goalTop,
       this.config.goalWidth,
-      this.config.goalHeight,
+      this.config.goalHeight
     );
 
     this.ctx.strokeStyle = '#ffffff';
@@ -158,7 +153,7 @@ export class SpectatorFieldComponent
       0,
       goalTop,
       this.config.goalWidth,
-      this.config.goalHeight,
+      this.config.goalHeight
     );
 
     // Right goal
@@ -166,13 +161,13 @@ export class SpectatorFieldComponent
       this.config.fieldWidth - this.config.goalWidth,
       goalTop,
       this.config.goalWidth,
-      this.config.goalHeight,
+      this.config.goalHeight
     );
     this.ctx.strokeRect(
       this.config.fieldWidth - this.config.goalWidth,
       goalTop,
       this.config.goalWidth,
-      this.config.goalHeight,
+      this.config.goalHeight
     );
   }
 
@@ -187,7 +182,7 @@ export class SpectatorFieldComponent
       ball.y + 2,
       this.config.ballRadius,
       0,
-      2 * Math.PI,
+      2 * Math.PI
     );
     this.ctx.fill();
 

@@ -1,11 +1,12 @@
-.spectator-container {
+
+.replay-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   background-color: #f5f5f5;
 }
 
-.spectator-header {
+.replay-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -31,7 +32,7 @@
   }
 }
 
-.spectator-info {
+.replay-info {
   display: flex;
   align-items: center;
   gap: 2rem;
@@ -42,7 +43,7 @@
   }
 }
 
-.spectator-count {
+.replay-count {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -80,7 +81,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.spectator-badge {
+.replay-badge {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -173,13 +174,13 @@
 
 // Responsive design
 @media (max-width: 768px) {
-  .spectator-header {
+  .replay-header {
     flex-direction: column;
     gap: 1rem;
     padding: 1rem;
   }
 
-  .spectator-info {
+  .replay-info {
     flex-direction: column;
     gap: 0.5rem;
   }

@@ -2,6 +2,7 @@ import { io } from "../app.js";
 import { spectatorService } from "./spectator.js";
 import { Game } from "../models/game.js";
 import { Player } from "../models/players.js";
+import { GameAction } from "../models/game_actions.js";
 
 export const userToGameMap = new Map();
 
@@ -21,8 +22,8 @@ function gameFunction(gameId) {
   }
 
   updateGamePhysics(game);
-  checkBounds(game);
-  checkCollisions(game);
+  checkBounds(game, gameId);
+  checkCollisions(game, gameId);
   checkGoals(game, gameId);
 
   updateRods(game, 1);
@@ -155,7 +156,7 @@ function updateGamePhysics(game) {
   // }
 }
 
-function checkBounds(game) {
+function checkBounds(game, gameId) {
   const ball = game.state.ball;
   const { fieldWidth, fieldHeight, ballRadius } = game.config;
 
@@ -179,7 +180,7 @@ function checkBounds(game) {
   ball.vy = yCheck.vel;
 }
 
-function checkCollisions(game) {
+function checkCollisions(game, gameId) {
   const ball = game.state.ball;
   // If the ball is on the left side of the field, check team1 rods
   if (ball.x < game.config.fieldWidth / 2) {
@@ -268,8 +269,19 @@ function checkGoals(game, gameId) {
     updateGameScoreInDatabase(
       gameId,
       game.state.team1.score,
-      game.state.team2.score,
+      game.state.team2.score
     );
+
+    GameAction.create({
+      gameId,
+      elapsedMs: Date.now() - game.startTime,
+      type: "goal",
+      userId: null,
+      data: {
+        score1: game.state.team1.score,
+        score2: game.state.team2.score,
+      },
+    });
 
     // Check if game should end
     if (game.state.team2.score >= game.config.maxScore) {
@@ -290,8 +302,19 @@ function checkGoals(game, gameId) {
     updateGameScoreInDatabase(
       gameId,
       game.state.team1.score,
-      game.state.team2.score,
+      game.state.team2.score
     );
+
+    GameAction.create({
+      gameId,
+      elapsedMs: Date.now() - game.startTime,
+      type: "goal",
+      userId: null,
+      data: {
+        score1: game.state.team1.score,
+        score2: game.state.team2.score,
+      },
+    });
 
     // Check if game should end
     if (game.state.team1.score >= game.config.maxScore) {
@@ -339,11 +362,8 @@ function pauseGameForCelebration(game, gameId) {
 
   // After 3 seconds (celebration complete), reset ball position and rods but keep it paused
   setTimeout(() => {
-    // Reset ball to center position but with no velocity (still paused)
-    game.state.ball.x = game.config.fieldWidth / 2;
-    game.state.ball.y = game.config.fieldHeight / 2;
-    game.state.ball.vx = 0;
-    game.state.ball.vy = 0;
+    // Use resetBall to reset ball to center and randomize velocity, but then set velocity to 0 (still paused)
+    resetBall(game);
 
     // Reset rods to their default positions
     resetRodsToDefault(game);
@@ -366,14 +386,31 @@ function pauseGameForCelebration(game, gameId) {
   }, 3000);
 
   // Resume the game after 4 seconds total (3s celebration + 1s with ball visible but stationary)
-  game.state.pauseTimer = setTimeout(() => {
+  game.state.pauseTimer = setTimeout(async () => {
     game.state.isPaused = false;
     game.state.pauseTimer = null;
 
-    // Give the ball initial random velocity to start the game
     const randomVelocity = getRandomBallVelocity();
-    game.state.ball.vx = randomVelocity.vx;
-    game.state.ball.vy = randomVelocity.vy;
+    // Use resetBall to randomize ball direction and position
+    resetBall(game, randomVelocity.vx, randomVelocity.vy);
+
+    // Store the ball randomization event for replay
+    try {
+      await GameAction.create({
+        gameId,
+        elapsedMs: Date.now() - game.startTime,
+        type: "ball_reset",
+        userId: null,
+        data: {
+          ball: { ...game.state.ball },
+        },
+      });
+    } catch (error) {
+      console.error(
+        `Error recording ball randomization for game ${gameId}:`,
+        error
+      );
+    }
 
     // Emit game resumed event
     io.to(`game-${gameId}`).emit("game.updated", {
@@ -414,15 +451,12 @@ function getRandomBallVelocity(ballSpeed = 5) {
   return { vx, vy };
 }
 
-function resetBall(game) {
+function resetBall(game, vx = 0, vy = 0) {
   // Basic reset logic after a goal
   game.state.ball.x = game.config.fieldWidth / 2;
   game.state.ball.y = game.config.fieldHeight / 2;
-
-  // Set random velocity direction
-  const randomVelocity = getRandomBallVelocity();
-  game.state.ball.vx = randomVelocity.vx;
-  game.state.ball.vy = randomVelocity.vy;
+  game.state.ball.vx = vx;
+  game.state.ball.vy = vy;
 }
 
 function resetRodsToDefault(game) {
@@ -512,7 +546,7 @@ async function endGame(game, gameId) {
         where: {
           gameId: gameId,
         },
-      },
+      }
     );
   } catch (error) {
     console.error(`Error updating game status for game ${gameId}:`, error);
@@ -545,9 +579,28 @@ async function endGame(game, gameId) {
   } catch (error) {
     console.error(`Error removing players from game ${gameId}:`, error);
   }
+
+  // Game end action logging
+  try {
+    await GameAction.create({
+      gameId,
+      elapsedMs: Date.now() - game.startTime,
+      type: "game_ended",
+      userId: null, // No specific user for game end
+      data: {
+        winner: winner,
+        finalScore: {
+          team1: game.state.team1.score,
+          team2: game.state.team2.score,
+        },
+      },
+    });
+  } catch (error) {
+    console.error(`Error recording game end action for game ${gameId}:`, error);
+  }
 }
 
-export function addNewGame(gameId, initialScores = null) {
+export async function addNewGame(gameId, initialScores = null) {
   if (games.has(gameId)) {
     console.error(`Game with ID ${gameId} already exists.`);
     return;
@@ -578,9 +631,26 @@ export function addNewGame(gameId, initialScores = null) {
     updateFunction: setInterval(() => updateFunction(gameId), 1000 / 30),
     spectatorFunction: setInterval(
       () => spectatorUpdateFunction(gameId),
-      spectatorService.SNAPSHOT_INTERVAL,
+      spectatorService.SNAPSHOT_INTERVAL
     ),
+    startTime: Date.now(),
   });
+
+  // Record game start action for replay
+  try {
+    await GameAction.create({
+      gameId,
+      elapsedMs: 0,
+      type: "game_start",
+      userId: null,
+      data: gameDefaults,
+    });
+  } catch (error) {
+    console.error(
+      `Error recording game start action for game ${gameId}:`,
+      error
+    );
+  }
 }
 
 export const GAME_DEFAULTS = {
@@ -684,12 +754,12 @@ async function updateGameScoreInDatabase(gameId, team1Score, team2Score) {
         where: {
           gameId: gameId,
         },
-      },
+      }
     );
   } catch (error) {
     console.error(
       `Error updating game score in database for game ${gameId}:`,
-      error,
+      error
     );
   }
 }
