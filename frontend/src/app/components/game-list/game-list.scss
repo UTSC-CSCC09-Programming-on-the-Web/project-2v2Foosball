@@ -60,12 +60,18 @@
             .team-score {
               font-size: 1.5rem;
               font-weight: 700;
-              color: #2c3e50;
-              background: #ecf0f1;
               padding: 0.25rem 0.5rem;
               border-radius: 8px;
               min-width: 30px;
               text-align: center;
+            }
+            .normal-score {
+              color: #2c3e50;
+              background: #ecf0f1;
+            }
+            .winning-score {
+              color: #2c3e50;
+              background: #dbd819;
             }
           }
 
