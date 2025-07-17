@@ -1,0 +1,66 @@
+<div class="games-list">
+  @for (game of games; track $index) {
+  <div class="game-card" (click)="onClick(game.gameId)">
+    <div class="game-header">
+      @if (game.status === 'in_progress') {
+      <div class="game-duration">{{ getGameDuration(game.createdAt) }}</div>
+      }
+    </div>
+
+    <div class="teams">
+      <div class="team team1">
+        <div class="team-header">
+          <h4>Team 1</h4>
+          <div
+            [class]="`team-score ${game.score.team1 >= 5 ? 'winning-score': 'normal-score'}`"
+          >
+            {{ game.score.team1 }}
+          </div>
+        </div>
+        <div class="players">
+          @for (player of game.players.team1; track $index) {
+          <div class="player">
+            @if (player.avatar) {
+            <img [src]="player.avatar" [alt]="player.name" class="avatar" />
+            }
+            <span>{{ player.name }}</span>
+          </div>
+          }
+        </div>
+      </div>
+
+      <div class="vs">VS</div>
+
+      <div class="team team2">
+        <div class="team-header">
+          <h4>Team 2</h4>
+          <div
+            [class]="`team-score ${game.score.team2 >= 5 ? 'winning-score': 'normal-score'}`"
+          >
+            {{ game.score.team2 }}
+          </div>
+        </div>
+        <div class="players">
+          @for (player of game.players.team2; track $index) {
+          <div class="player">
+            @if (player.avatar) {
+            <img [src]="player.avatar" [alt]="player.name" class="avatar" />
+            }
+            <span>{{ player.name }}</span>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="game-footer">
+      @if (game.status === 'in_progress') {
+      <div class="spectator-count">
+        👀 {{ game.spectatorCount ?? 0 }} watching
+      </div>
+      }
+      <div class="spectate-btn">Watch →</div>
+    </div>
+  </div>
+  }
+</div>

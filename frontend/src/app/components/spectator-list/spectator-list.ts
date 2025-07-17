@@ -2,17 +2,19 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { SpectatorService, ActiveGame } from '../../services/spectator.service';
+import { SpectatorService } from '../../services/spectator.service';
+import { GameData } from '../../types/game';
+import { GameList } from '../game-list/game-list';
 
 @Component({
   selector: 'app-spectator-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, GameList],
   templateUrl: './spectator-list.html',
   styleUrl: './spectator-list.scss',
 })
 export class SpectatorListComponent implements OnInit, OnDestroy {
-  activeGames: ActiveGame[] = [];
+  activeGames: GameData[] = [];
   loading = true;
   error: string | null = null;
   private subscriptions: Subscription[] = [];
@@ -21,7 +23,7 @@ export class SpectatorListComponent implements OnInit, OnDestroy {
   constructor(
     private spectatorService: SpectatorService,
     private router: Router,
-    private cdr: ChangeDetectorRef,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -52,7 +54,7 @@ export class SpectatorListComponent implements OnInit, OnDestroy {
         // Update scores and other game data while preserving existing games
         games.forEach((updatedGame) => {
           const existingGame = this.activeGames.find(
-            (g) => g.gameId === updatedGame.gameId,
+            (g) => g.gameId === updatedGame.gameId
           );
           if (existingGame) {
             // Update the scores and other data
@@ -67,7 +69,7 @@ export class SpectatorListComponent implements OnInit, OnDestroy {
 
         // Remove games that no longer exist
         this.activeGames = this.activeGames.filter((game) =>
-          games.some((g) => g.gameId === game.gameId),
+          games.some((g) => g.gameId === game.gameId)
         );
       },
       error: (err) => {
@@ -118,16 +120,5 @@ export class SpectatorListComponent implements OnInit, OnDestroy {
 
   refreshGames(): void {
     this.loadActiveGames();
-  }
-
-  getGameDuration(startTime: string): string {
-    const start = new Date(startTime);
-    const now = new Date();
-    const diff = Math.floor((now.getTime() - start.getTime()) / 1000);
-
-    const minutes = Math.floor(diff / 60);
-    const seconds = diff % 60;
-
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 }

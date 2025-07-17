@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Header } from '../../components/header/header';
 import { QueueComponent } from '../../components/queue/queue';
-import { SpectatorListComponent } from '../../components/spectator-list/spectator-list'; // ADD THIS
+import { SpectatorListComponent } from '../../components/spectator-list/spectator-list';
 import { AuthService } from '../../services/auth';
 import { Api } from '../../services/api';
 import { User } from '../../types/user';
@@ -9,10 +9,17 @@ import { CommonModule } from '@angular/common';
 import { SocketService } from '../../services/socket.service';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
+import { ReplayComponent } from '../../components/replay-list/replay-list';
 
 @Component({
   selector: 'app-index',
-  imports: [Header, CommonModule, QueueComponent, SpectatorListComponent], // ADD SpectatorListComponent HERE
+  imports: [
+    Header,
+    CommonModule,
+    QueueComponent,
+    SpectatorListComponent,
+    ReplayComponent,
+  ],
   templateUrl: './index.html',
   styleUrl: './index.scss',
 })
@@ -27,8 +34,12 @@ export class Index implements OnInit, OnDestroy {
     private authService: AuthService,
     private api: Api,
     private socketService: SocketService,
-    private router: Router,
-  ) {}
+    private router: Router
+  ) {
+    authService.getUser().subscribe((user) => {
+      this.user = user;
+    });
+  }
 
   ngOnInit(): void {
     this.checkUserInQueue();

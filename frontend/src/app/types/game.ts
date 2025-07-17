@@ -69,3 +69,18 @@ export interface GameMeta {
   team: 1 | 2;
   activeRod: 1 | 2;
 }
+
+export interface GameData {
+  gameId: string;
+  status: 'in_progress' | 'finished';
+  createdAt: string;
+  score: {
+    team1: number;
+    team2: number;
+  };
+  players: {
+    team1: Array<{ userId: string; name: string; avatar: string }>;
+    team2: Array<{ userId: string; name: string; avatar: string }>;
+  };
+  spectatorCount?: number;
+}

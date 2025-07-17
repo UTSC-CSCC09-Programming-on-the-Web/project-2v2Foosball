@@ -8,10 +8,16 @@ import { BallState, PlayerRodState } from '../../types/game';
 import { SocketService } from '../../services/socket.service';
 import { Api } from '../../services/api';
 import { GameEvent, GameConfig } from '../../types/game';
+import { Celebrations } from '../../components/celebrations/celebrations';
 
 @Component({
   selector: 'app-game',
-  imports: [CommonModule, ScoreboardComponent, GameFieldComponent],
+  imports: [
+    CommonModule,
+    ScoreboardComponent,
+    GameFieldComponent,
+    Celebrations,
+  ],
   templateUrl: './game.html',
   styleUrl: './game.scss',
 })
@@ -63,7 +69,7 @@ export class Game implements OnInit, OnDestroy {
     rodHeight: 500,
     ballRadius: 10,
     figureRadius: 12,
-    maxScore: 1,
+    maxScore: 5,
     rodSpeed: 5,
     ballSpeed: 10,
   };
@@ -89,7 +95,7 @@ export class Game implements OnInit, OnDestroy {
   constructor(
     private api: Api,
     private socketService: SocketService,
-    private router: Router,
+    private router: Router
   ) {}
 
   ngOnInit(): void {

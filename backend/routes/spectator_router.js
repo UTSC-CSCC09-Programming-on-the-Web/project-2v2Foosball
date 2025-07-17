@@ -33,7 +33,8 @@ spectatorRouter.get("/active-games", async (req, res) => {
 
       return {
         gameId: game.gameId,
-        startTime: game.createdAt,
+        status: game.status,
+        createdAt: game.createdAt,
         score: {
           team1: game.score1,
           team2: game.score2,
