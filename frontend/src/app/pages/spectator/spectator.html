@@ -26,48 +26,14 @@
       <app-spectator-field [ball]="ball" [rods]="rods" [config]="config">
       </app-spectator-field>
     </div>
-
-    <!-- Goal Celebration Overlay -->
-    @if (showGoalCelebration) {
-    <div class="goal-celebration-overlay">
-      <div class="goal-celebration-content">
-        <h1 class="goal-text">GOAL!!!</h1>
-      </div>
-    </div>
-    }
-
-    <!-- Game End Screen Overlay -->
-    @if (showGameEndScreen) {
-    <div class="game-end-overlay">
-      <div class="game-end-content">
-        <h1 class="game-over-title">Game Over!</h1>
-
-        <div class="winner-announcement">
-          <h2 class="winner-text">Team {{ gameWinner }} Wins!</h2>
-        </div>
-
-        <div class="final-score-display">
-          <h3>Final Score</h3>
-          <div class="score-breakdown">
-            <div class="team-score" [class.winner]="gameWinner === 1">
-              <span class="team-label">Team 1</span>
-              <span class="score-value">{{ finalScore?.team1 || 0 }}</span>
-            </div>
-            <div class="score-separator">-</div>
-            <div class="team-score" [class.winner]="gameWinner === 2">
-              <span class="team-label">Team 2</span>
-              <span class="score-value">{{ finalScore?.team2 || 0 }}</span>
-            </div>
-          </div>
-        </div>
-
-        <button class="return-button" (click)="returnToMainMenu()">
-          Return to Main Menu
-        </button>
-      </div>
-    </div>
-    }
   </div>
+
+  <app-celebrations
+    [showGoalCelebration]="showGoalCelebration"
+    [showGameEndScreen]="showGameEndScreen"
+    [gameWinner]="gameWinner"
+    [finalScore]="finalScore"
+  />
 
   <div class="loading" *ngIf="isLoading">
     <div class="spinner"></div>

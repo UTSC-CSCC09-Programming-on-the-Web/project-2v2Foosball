@@ -6,11 +6,17 @@ import { SpectatorFieldComponent } from '../../components/spectator-field/specta
 import { ScoreboardComponent } from '../../components/scoreboard/scoreboard';
 import { SpectatorService } from '../../services/spectator.service';
 import { BallState, PlayerRodState, GameConfig } from '../../types/game';
+import { Celebrations } from '../../components/celebrations/celebrations';
 
 @Component({
   selector: 'app-spectator',
   standalone: true,
-  imports: [CommonModule, SpectatorFieldComponent, ScoreboardComponent],
+  imports: [
+    CommonModule,
+    SpectatorFieldComponent,
+    ScoreboardComponent,
+    Celebrations,
+  ],
   templateUrl: './spectator.html',
   styleUrl: './spectator.scss',
 })
@@ -80,12 +86,13 @@ export class SpectatorPage implements OnInit, OnDestroy {
     fieldHeight: 500,
     goalWidth: 20,
     goalHeight: 200,
-    rodWidth: 20,
-    rodHeight: 400,
-    rodSpeed: 500,
+    rodWidth: 6,
+    rodHeight: 500,
     ballRadius: 10,
-    ballSpeed: 300,
-    figureRadius: 20,
+    figureRadius: 12,
+    maxScore: 5,
+    rodSpeed: 5,
+    ballSpeed: 10,
   };
 
   private subscriptions: Subscription[] = [];
@@ -93,7 +100,7 @@ export class SpectatorPage implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private spectatorService: SpectatorService,
-    private cdr: ChangeDetectorRef,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
