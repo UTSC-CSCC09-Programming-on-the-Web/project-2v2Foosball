@@ -8,6 +8,7 @@ services:
       - production
 
   db:
+    restart: never
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
@@ -27,6 +28,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    restart: never
     environment:
       NODE_ENV: development
     volumes:
@@ -42,6 +44,7 @@ services:
       target: build
     ports:
       - "4200:4200"
+    restart: never
     volumes:
       - ./frontend:/app
       - /app/node_modules
