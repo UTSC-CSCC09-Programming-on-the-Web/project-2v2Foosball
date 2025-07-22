@@ -2,8 +2,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 
 import { passport } from "../passport.js";
-import { stripe } from "../stripe.js";
-import { isAuth } from "../middlewares/auth.js";
+import { isAuth, isAuthWithoutSubscription } from "../middlewares/auth.js";
 import { User } from "../models/users.js";
 import {
   MOCK_USER,
@@ -24,7 +23,7 @@ function signToken(user) {
     process.env.JWT_SIGNING_KEY,
     {
       expiresIn: "7d",
-    },
+    }
   );
 }
 
@@ -35,7 +34,7 @@ authRouter.get(
   passport.authenticate("github", {
     scope: ["user:email"],
     session: false,
-  }),
+  })
 );
 
 // Callback for Github OAuth
@@ -56,7 +55,7 @@ authRouter.get(
       domain: new URL(process.env.BACKEND_URL).hostname,
     });
     return res.redirect(`${process.env.FRONTEND_URL}`);
-  },
+  }
 );
 
 authRouter.post("/mock", (req, res) => {

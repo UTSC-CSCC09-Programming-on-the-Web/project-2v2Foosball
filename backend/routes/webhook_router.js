@@ -15,7 +15,7 @@ webhookRouter.post(
       event = stripe.webhooks.constructEvent(
         req.body,
         sig,
-        process.env.STRIPE_WEBHOOK_SECRET,
+        process.env.STRIPE_WEBHOOK_SECRET
       );
     } catch (err) {
       console.error(`Webhook signature verification failed: ${err.message}`);
@@ -30,7 +30,7 @@ webhookRouter.post(
       case "checkout.session.completed":
         userId = event.data.object.metadata.userId;
         user = await User.findByPk(userId);
-        user.stripeSubscriptionId = event.data.object.subscription;
+        user.active = true;
         await user.save();
         break;
       case "customer.deleted":
@@ -47,5 +47,5 @@ webhookRouter.post(
     }
 
     res.json({ message: "Webhook received" });
-  },
+  }
 );

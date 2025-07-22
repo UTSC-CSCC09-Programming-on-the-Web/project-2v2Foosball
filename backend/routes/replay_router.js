@@ -8,7 +8,7 @@ import { User } from "../models/users.js";
 export const replayRouter = Router();
 
 // Returns paginated game history for a user
-replayRouter.get("/:userId", async (req, res) => {
+replayRouter.get("/:userId", isAuth, async (req, res) => {
   const { userId } = req.params;
   const page = parseInt(req.query.page) || 0;
   const limit = 5;
@@ -84,7 +84,7 @@ replayRouter.get("/:userId", async (req, res) => {
 });
 
 // Fetch actions for a specific gameId
-replayRouter.get("/actions/:gameId", async (req, res) => {
+replayRouter.get("/actions/:gameId", isAuth, async (req, res) => {
   const { gameId } = req.params;
 
   try {

@@ -1,11 +1,11 @@
 import express from "express";
 import { stripe } from "../stripe.js";
-import { isAuth } from "../middlewares/auth.js";
+import { isAuthWithoutSubscription } from "../middlewares/auth.js";
 import { User } from "../models/users.js";
 
 export const checkoutRouter = express.Router();
 
-checkoutRouter.post("/", isAuth, async (req, res) => {
+checkoutRouter.post("/", isAuthWithoutSubscription, async (req, res) => {
   const { lookup } = req.body;
   if (!lookup) {
     return res.status(422).json({ error: "Lookup key is required" });
