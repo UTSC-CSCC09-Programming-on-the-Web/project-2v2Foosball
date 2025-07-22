@@ -42,6 +42,7 @@ export const setupMockUsers = () => {
       email: "example@gmail.com",
       provider: "github",
       providerUserId: "mock",
+      active: true,
     });
   });
 
@@ -58,6 +59,7 @@ export const setupMockUsers = () => {
       email: "example2@gmail.com",
       provider: "github",
       providerUserId: "mock2",
+      active: true,
     });
   });
 

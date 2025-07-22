@@ -4,6 +4,7 @@ import { Game } from "../models/game.js";
 import { GameAction } from "../models/game_actions.js";
 import { Op } from "sequelize";
 import { User } from "../models/users.js";
+import { isAuth } from "../middlewares/auth.js";
 
 export const replayRouter = Router();
 

@@ -173,15 +173,12 @@ authRouter.get("/me", isAuth, async (req, res) => {
   }
 
   const user = await User.findByPk(req.user.userId);
-  const subscription = user.stripeSubscriptionId
-    ? await stripe.subscriptions.retrieve(user.stripeSubscriptionId)
-    : null;
 
   res.json({
     userId: req.user.userId,
     name: req.user.name,
     avatar: req.user.avatar,
-    active: subscription && subscription.status === "active",
+    active: user.active,
   });
 });
 

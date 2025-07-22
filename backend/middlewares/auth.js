@@ -4,29 +4,29 @@ import { MOCK_USER, MOCK_USER_2 } from "../data/mock.js";
 
 const createAuthMiddleware = (requireSubscription = true) => {
   return async (req, res, next) => {
-  const token = req.cookies.authtoken;
+    const token = req.cookies.authtoken;
 
-  if (!token) {
-    return res
-      .status(401)
-      .json({ error: "Authentication required - no token found" });
-  }
+    if (!token) {
+      return res
+        .status(401)
+        .json({ error: "Authentication required - no token found" });
+    }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SIGNING_KEY);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SIGNING_KEY);
 
-    if (
+      if (
         decoded.userId === MOCK_USER.userId ||
         decoded.userId === MOCK_USER_2.userId
-    ) {
+      ) {
         if (process.env.NODE_ENV !== "development") {
           return res.status(403).json({
             error: "Mock users are only allowed in development mode",
           });
         }
-      req.user = decoded;
-      return next();
-    }
+        req.user = decoded;
+        return next();
+      }
 
       const user = await User.findByPk(decoded.userId);
       if (!decoded || !decoded.userId || user === null) {
@@ -39,26 +39,26 @@ const createAuthMiddleware = (requireSubscription = true) => {
         return res.status(403).json({
           error: "User does not have an active subscription",
         });
-    }
+      }
 
       console.log("User authenticated:", decoded);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    // Clear invalid cookie
-    res.clearCookie("authtoken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      domain: new URL(process.env.FRONTEND_URL).hostname,
-    });
+      req.user = decoded;
+      next();
+    } catch (err) {
+      // Clear invalid cookie
+      res.clearCookie("authtoken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        domain: new URL(process.env.FRONTEND_URL).hostname,
+      });
 
-    return res.status(403).json({
-      error: "Invalid or expired token",
-      details: err.message,
-    });
-  }
-};
+      return res.status(403).json({
+        error: "Invalid or expired token",
+        details: err.message,
+      });
+    }
+  };
 };
 
 export const isAuthWithoutSubscription = createAuthMiddleware(false);

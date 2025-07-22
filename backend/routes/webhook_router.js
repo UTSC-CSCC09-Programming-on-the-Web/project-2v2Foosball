@@ -24,21 +24,69 @@ webhookRouter.post(
 
     console.log(`Received event: ${event.id} of type ${event.type}`);
 
-    let userId;
+    let cusId;
     let user;
     switch (event.type) {
-      case "checkout.session.completed":
-        userId = event.data.object.metadata.userId;
-        user = await User.findByPk(userId);
-        user.active = true;
-        await user.save();
+      case "customer.subscription.created":
+      case "customer.subscription.resumed":
+        cusId = event.data.object.customer;
+        user = await User.findOne({
+          where: { stripeCustomerId: cusId },
+        });
+        if (user && !user.active) {
+          user.active = true;
+          await user.save();
+        }
+        break;
+      case "customer.subscription.deleted":
+      case "customer.subscription.paused":
+        cusId = event.data.object.customer;
+        user = await User.findOne({
+          where: { stripeCustomerId: cusId },
+        });
+        if (user && user.active) {
+          user.active = false;
+          await user.save();
+        }
+        break;
+      case "customer.subscription.updated":
+        cusId = event.data.object.customer;
+        user = await User.findOne({
+          where: { stripeCustomerId: cusId },
+        });
+        if (user) {
+          user.active = event.data.object.status === "active";
+          await user.save();
+        }
         break;
       case "customer.deleted":
-        userId = event.data.object.metadata.userId;
-        user = await User.findByPk(userId);
+        cusId = event.data.object.id;
+        user = await User.findOne({
+          where: { stripeCustomerId: cusId },
+        });
         if (user) {
           user.stripeCustomerId = null;
-          user.stripeSubscriptionId = null;
+          user.active = false;
+          await user.save();
+        }
+        break;
+      case "invoice.payment_failed":
+        cusId = event.data.object.customer;
+        user = await User.findOne({
+          where: { stripeCustomerId: cusId },
+        });
+        if (user && user.active) {
+          user.active = false;
+          await user.save();
+        }
+        break;
+      case "invoice.payment_succeeded":
+        cusId = event.data.object.customer;
+        user = await User.findOne({
+          where: { stripeCustomerId: cusId },
+        });
+        if (user && !user.active) {
+          user.active = true;
           await user.save();
         }
         break;
