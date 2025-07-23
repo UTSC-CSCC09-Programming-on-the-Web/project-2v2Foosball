@@ -2,7 +2,12 @@ import express from "express";
 import jwt from "jsonwebtoken";
 
 import { passport } from "../passport.js";
-import { isAuth, isAuthWithoutSubscription } from "../middlewares/auth.js";
+import {
+  doubleCsrfProtection,
+  generateCsrfToken,
+  isAuth,
+  isAuthWithoutSubscription,
+} from "../middlewares/auth.js";
 import { User } from "../models/users.js";
 import {
   MOCK_USER,
@@ -54,6 +59,11 @@ authRouter.get(
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       domain: new URL(process.env.BACKEND_URL).hostname,
     });
+
+    // NOTE: Set the authtoken for this request so that CSRF token can be generated
+    req.cookies.authtoken = token;
+    generateCsrfToken(req, res);
+
     return res.redirect(`${process.env.FRONTEND_URL}`);
   }
 );
@@ -73,6 +83,9 @@ authRouter.post("/mock", (req, res) => {
     domain: new URL(process.env.BACKEND_URL).hostname,
   });
 
+  req.cookies.authtoken = token;
+  generateCsrfToken(req, res);
+
   return res.json({ message: "Mock user logged in successfully" });
 });
 
@@ -90,6 +103,9 @@ authRouter.post("/mock2", (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     domain: new URL(process.env.BACKEND_URL).hostname,
   });
+
+  req.cookies.authtoken = token;
+  generateCsrfToken(req, res);
 
   return res.json({ message: "Mock user 2 logged in successfully" });
 });
@@ -182,13 +198,19 @@ authRouter.get("/me", isAuth, async (req, res) => {
   });
 });
 
-authRouter.post("/logout", isAuth, (req, res) => {
+authRouter.post("/logout", isAuth, doubleCsrfProtection, (req, res) => {
   // Clear the HTTP-only cookie
   res.clearCookie("authtoken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     domain: new URL(process.env.BACKEND_URL).hostname,
+  });
+  res.clearCookie("xsrf-token", {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    domain: new URL(process.env.FRONTEND_URL).hostname,
   });
 
   res.json({ message: "Logged out successfully" });

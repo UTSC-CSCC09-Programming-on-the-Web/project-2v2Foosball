@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000/api',
+  apiUrl: '//localhost:3000/api',
   socketUrl: 'http://localhost:3000',
   // NOTE: The Stripe publishable key is used for client-side operations, and doesn't need to be kept secret.
   stripePublishableKey:

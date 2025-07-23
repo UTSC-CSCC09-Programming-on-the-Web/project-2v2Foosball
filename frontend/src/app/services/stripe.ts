@@ -10,10 +10,7 @@ import { Observable } from 'rxjs';
 })
 export class StripeService {
   // stripePromise: Promise<Stripe>;
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-  ) {
+  constructor(private http: HttpClient, private router: Router) {
     // this.stripePromise = this.loadStripe();
   }
 
@@ -40,7 +37,7 @@ export class StripeService {
       },
       {
         withCredentials: true,
-      },
+      }
     );
   }
 }

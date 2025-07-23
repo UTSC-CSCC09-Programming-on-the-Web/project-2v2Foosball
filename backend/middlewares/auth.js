@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/users.js";
 import { MOCK_USER, MOCK_USER_2 } from "../data/mock.js";
+import { doubleCsrf } from "csrf-csrf";
 
 const createAuthMiddleware = (requireSubscription = true) => {
   return async (req, res, next) => {
@@ -20,9 +21,7 @@ const createAuthMiddleware = (requireSubscription = true) => {
         decoded.userId === MOCK_USER_2.userId
       ) {
         if (process.env.NODE_ENV !== "development") {
-          return res.status(403).json({
-            error: "Mock users are only allowed in development mode",
-          });
+          throw new Error("Mock users are only allowed in development mode");
         }
         req.user = decoded;
         return next();
@@ -30,15 +29,11 @@ const createAuthMiddleware = (requireSubscription = true) => {
 
       const user = await User.findByPk(decoded.userId);
       if (!decoded || !decoded.userId || user === null) {
-        return res.status(403).json({
-          error: "Invalid token payload",
-        });
+        throw new Error("Invalid token payload");
       }
 
       if (requireSubscription && !user.active) {
-        return res.status(403).json({
-          error: "User does not have an active subscription",
-        });
+        throw new Error("User does not have an active subscription");
       }
 
       console.log("User authenticated:", decoded);
@@ -48,6 +43,13 @@ const createAuthMiddleware = (requireSubscription = true) => {
       // Clear invalid cookie
       res.clearCookie("authtoken", {
         httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        domain: new URL(process.env.FRONTEND_URL).hostname,
+      });
+
+      res.clearCookie("xsrf-token", {
+        httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         domain: new URL(process.env.FRONTEND_URL).hostname,
@@ -105,3 +107,20 @@ export const isAuthSocket = async (socket, next) => {
     next(new Error("Authentication error"));
   }
 };
+
+// CSRF protection middleware
+export const {
+  doubleCsrfProtection, // This is the default CSRF protection middleware.
+  generateCsrfToken,
+} = doubleCsrf({
+  getSecret: (req) => process.env.CSRF_SECRET,
+  getSessionIdentifier: (req) => req.cookies.authtoken,
+  cookieName: "xsrf-token",
+  cookieOptions: {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    domain: new URL(process.env.BACKEND_URL).hostname, // Change to frontend domain
+  },
+});

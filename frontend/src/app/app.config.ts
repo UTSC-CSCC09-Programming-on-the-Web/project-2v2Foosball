@@ -9,6 +9,7 @@ import { routes } from './app.routes';
 import {
   provideHttpClient,
   withInterceptorsFromDi,
+  withXsrfConfiguration,
 } from '@angular/common/http';
 
 export const appConfig: ApplicationConfig = {
@@ -16,6 +17,12 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(
+      withXsrfConfiguration({
+        cookieName: 'xsrf-token',
+        headerName: 'x-csrf-token',
+      }),
+      withInterceptorsFromDi()
+    ),
   ],
 };
