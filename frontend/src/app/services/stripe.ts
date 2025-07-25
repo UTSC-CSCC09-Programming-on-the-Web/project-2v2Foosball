@@ -18,7 +18,7 @@ export class StripeService {
     return (window as any).stripe(environment.stripePublishableKey);
   }
 
-  redirectToCheckout(lookup: string): void {
+  redirectToCheckout(lookup: 'monthly_plan' | 'yearly_plan'): void {
     this.createStripeSession(lookup).subscribe({
       next: (response) => {
         window.location.href = response.url;
@@ -32,9 +32,7 @@ export class StripeService {
   createStripeSession(lookup: string): Observable<{ url: string }> {
     return this.http.post<{ url: string }>(
       `${environment.apiUrl}/checkout`,
-      {
-        lookup,
-      },
+      { lookup },
       {
         withCredentials: true,
       }
