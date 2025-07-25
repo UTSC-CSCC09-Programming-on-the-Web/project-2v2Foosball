@@ -7,4 +7,8 @@ export const environment = {
     'pk_test_51RcSJxPSr5Tkija5Ap2llpEBOUfbpLOBP4DTJJWwvEqt7F9GBX29WBoJB3NfAWUKjdLZnnUJd2EoH0HGi5g3Rc6D00jAJrLTUa',
   name: 'Foosball',
   githubClientId: 'Ov23liJhIHvZtbHim31M',
+  githubRedirectUri: 'http://localhost:3000/api/auth/github/callback',
+  googleClientId:
+    '252031120749-ke64kf58igaimcor430ljg7um1ugsp0h.apps.googleusercontent.com',
+  googleRedirectUri: 'http://localhost:3000/api/auth/google/callback',
 };

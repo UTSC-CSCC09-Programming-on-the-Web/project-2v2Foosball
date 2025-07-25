@@ -68,6 +68,31 @@ authRouter.get(
   }
 );
 
+authRouter.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: `${process.env.FRONTEND_URL}/login`,
+    session: false,
+  }),
+  async (req, res) => {
+    const token = signToken(req.user);
+    // Set the JWT token in an HTTP-only cookie
+    res.cookie("authtoken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      domain: new URL(process.env.BACKEND_URL).hostname,
+    });
+
+    // NOTE: Set the authtoken for this request so that CSRF token can be generated
+    req.cookies.authtoken = token;
+    generateCsrfToken(req, res);
+
+    return res.redirect(`${process.env.FRONTEND_URL}`);
+  }
+);
+
 authRouter.post("/mock", (req, res) => {
   if (process.env.NODE_ENV !== "development") {
     return res.status(403).json({ message: "Wrong place." });
@@ -198,20 +223,25 @@ authRouter.get("/me", isAuth, async (req, res) => {
   });
 });
 
-authRouter.post("/logout", isAuth, doubleCsrfProtection, (req, res) => {
-  // Clear the HTTP-only cookie
-  res.clearCookie("authtoken", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    domain: new URL(process.env.BACKEND_URL).hostname,
-  });
-  res.clearCookie("xsrf-token", {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    domain: new URL(process.env.FRONTEND_URL).hostname,
-  });
+authRouter.post(
+  "/logout",
+  isAuthWithoutSubscription,
+  doubleCsrfProtection,
+  (req, res) => {
+    // Clear the HTTP-only cookie
+    res.clearCookie("authtoken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      domain: new URL(process.env.BACKEND_URL).hostname,
+    });
+    res.clearCookie("xsrf-token", {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      domain: new URL(process.env.FRONTEND_URL).hostname,
+    });
 
-  res.json({ message: "Logged out successfully" });
-});
+    res.json({ message: "Logged out successfully" });
+  }
+);

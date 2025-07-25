@@ -25,7 +25,7 @@ export const User = sequelize.define(
     },
     provider: {
       type: DataTypes.ENUM,
-      values: ["github"],
+      values: ["github", "google"],
       allowNull: false,
     },
     providerUserId: {
