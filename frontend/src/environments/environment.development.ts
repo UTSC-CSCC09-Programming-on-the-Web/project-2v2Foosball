@@ -6,4 +6,5 @@ export const environment = {
   stripePublishableKey:
     'pk_test_51RcSJxPSr5Tkija5Ap2llpEBOUfbpLOBP4DTJJWwvEqt7F9GBX29WBoJB3NfAWUKjdLZnnUJd2EoH0HGi5g3Rc6D00jAJrLTUa',
   name: 'Foosball',
+  githubClientId: 'Ov23liJhIHvZtbHim31M',
 };

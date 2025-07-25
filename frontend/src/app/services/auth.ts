@@ -13,14 +13,11 @@ import { asyncScheduler, scheduled } from 'rxjs';
 export class AuthService {
   user: User | null = null;
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-  ) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   // Redirect to backend for login with GitHub
   login(provider: 'github'): void {
-    window.location.href = `${environment.apiUrl}/auth/github`;
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${environment.githubClientId}&scope=user:email&prompt=select_account`;
   }
 
   mockLogin(userNumber: number = 1): Observable<any> {
@@ -36,7 +33,7 @@ export class AuthService {
     return this.http.post(
       `${environment.apiUrl}/auth/${endpoint}`,
       {},
-      { withCredentials: true },
+      { withCredentials: true }
     );
   }
 
@@ -67,7 +64,7 @@ export class AuthService {
           return throwError(() => {
             return new Error('User not authenticated');
           });
-        }),
+        })
       );
   }
 }

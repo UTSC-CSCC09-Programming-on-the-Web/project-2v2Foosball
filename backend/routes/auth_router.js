@@ -34,13 +34,13 @@ function signToken(user) {
 
 // Route to initiate Github OAuth
 // Frontend redirects to this endpoint
-authRouter.get(
-  "/github",
-  passport.authenticate("github", {
-    scope: ["user:email"],
-    session: false,
-  })
-);
+// authRouter.get(
+//   "/github",
+//   passport.authenticate("github", {
+//     scope: ["user:email"],
+//     session: false,
+//   })
+// );
 
 // Callback for Github OAuth
 authRouter.get(
