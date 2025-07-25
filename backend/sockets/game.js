@@ -13,8 +13,8 @@ import { addNewGame, games, userToGameMap } from "../data/game_data.js";
 export function registerGameListeners(io, socket) {
   setInterval(async () => {
     // Check if there are enough players in the queue to start a game
-    if (queue.length >= 2) {
-      const players = queue.splice(0, 2); // Take the first two players from the queue
+    if (queue.length >= 4) {
+      const players = queue.splice(0, 4); // Take the first four players from the queue
       io.emit("queue.updated", queue);
 
       // Create a game object
@@ -28,10 +28,16 @@ export function registerGameListeners(io, socket) {
 
       for (const [i, player] of players.entries()) {
         try {
+          // Assign teams and rod positions:
+          // Players 0,1 → Team 1 (rod 1, rod 2)
+          // Players 2,3 → Team 2 (rod 1, rod 2)
+          const team = i < 2 ? 1 : 2;
+          const rodIndex = (i % 2) + 1; // 1 or 2
+
           await Player.create({
             userId: player.userId,
             gameId: game.gameId,
-            team: i + 1, // Assign teams 1 and 2
+            team: team, // Assign teams 1 and 2
           });
 
           userToGameMap.set(player.userId, game.gameId);
@@ -61,13 +67,13 @@ export function registerGameListeners(io, socket) {
         } catch (error) {
           console.error(
             `Error creating player ${player.userId} for game ${game.gameId}:`,
-            error
+            error,
           );
           // If there's an error, it might be because the player still has a game association
           // Try to clean up and retry
           await Player.update(
             { gameId: null },
-            { where: { userId: player.userId } }
+            { where: { userId: player.userId } },
           );
 
           // Retry player creation
@@ -103,7 +109,7 @@ export function registerGameListeners(io, socket) {
       }
 
       console.log(
-        `Game started with players: ${players.map((p) => p.userId).join(", ")}`
+        `Game started with 4 players: ${players.map((p) => p.userId).join(", ")}`,
       );
     }
   }, 1000);
@@ -125,7 +131,7 @@ export function registerGameListeners(io, socket) {
     const game = games.get(gameId);
 
     console.log(
-      `Key ${type === "keydown" ? "pressed" : "lifted"} in game ${gameId}: ${key} by user ${userId} on rod ${activeRod}`
+      `Key ${type === "keydown" ? "pressed" : "lifted"} in game ${gameId}: ${key} by user ${userId} on rod ${activeRod}`,
     );
 
     if (gameId && game && player) {
@@ -160,7 +166,7 @@ export function registerGameListeners(io, socket) {
       } catch (error) {
         console.error(
           `Error storing game action for user ${userId} in game ${gameId}:`,
-          error
+          error,
         );
       }
     }

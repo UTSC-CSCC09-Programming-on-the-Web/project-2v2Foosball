@@ -75,7 +75,7 @@ replayRouter.get("/:userId", async (req, res) => {
               avatar: p.user.avatar,
             })),
         },
-      }))
+      })),
     );
   } catch (error) {
     console.error("Error fetching game history:", error);
@@ -103,6 +103,3 @@ replayRouter.get("/actions/:gameId", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
-
-

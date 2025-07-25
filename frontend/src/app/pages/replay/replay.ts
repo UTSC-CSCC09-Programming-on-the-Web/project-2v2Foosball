@@ -107,7 +107,10 @@ export class ReplayPage implements OnInit, OnDestroy {
     ballSpeed: 10,
   };
 
-  constructor(private replayService: ReplayService, private router: Router) {}
+  constructor(
+    private replayService: ReplayService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
     this.replayService.getCurrentGame().subscribe((gameId) => {
@@ -115,7 +118,7 @@ export class ReplayPage implements OnInit, OnDestroy {
 
       if (!this.gameId) {
         this.onError(
-          'No game selected. Please select a game from the games list.'
+          'No game selected. Please select a game from the games list.',
         );
         return;
       }
@@ -138,7 +141,7 @@ export class ReplayPage implements OnInit, OnDestroy {
     // fetch full list of replay actions
     if (!this.gameId) {
       this.onError(
-        'No game selected. Please select a game from the games list.'
+        'No game selected. Please select a game from the games list.',
       );
       return;
     }
@@ -194,7 +197,7 @@ export class ReplayPage implements OnInit, OnDestroy {
   private processAction(action: ReplayAction) {
     let data;
     console.log(
-      `Processing action ${action.actionId} of type ${action.type} at ${action.elapsedMs} ms`
+      `Processing action ${action.actionId} of type ${action.type} at ${action.elapsedMs} ms`,
     );
 
     switch (action.type) {

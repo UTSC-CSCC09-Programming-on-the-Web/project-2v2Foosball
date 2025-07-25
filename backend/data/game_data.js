@@ -269,7 +269,7 @@ function checkGoals(game, gameId) {
     updateGameScoreInDatabase(
       gameId,
       game.state.team1.score,
-      game.state.team2.score
+      game.state.team2.score,
     );
 
     GameAction.create({
@@ -302,7 +302,7 @@ function checkGoals(game, gameId) {
     updateGameScoreInDatabase(
       gameId,
       game.state.team1.score,
-      game.state.team2.score
+      game.state.team2.score,
     );
 
     GameAction.create({
@@ -408,7 +408,7 @@ function pauseGameForCelebration(game, gameId) {
     } catch (error) {
       console.error(
         `Error recording ball randomization for game ${gameId}:`,
-        error
+        error,
       );
     }
 
@@ -546,7 +546,7 @@ async function endGame(game, gameId) {
         where: {
           gameId: gameId,
         },
-      }
+      },
     );
   } catch (error) {
     console.error(`Error updating game status for game ${gameId}:`, error);
@@ -631,7 +631,7 @@ export async function addNewGame(gameId, initialScores = null) {
     updateFunction: setInterval(() => updateFunction(gameId), 1000 / 30),
     spectatorFunction: setInterval(
       () => spectatorUpdateFunction(gameId),
-      spectatorService.SNAPSHOT_INTERVAL
+      spectatorService.SNAPSHOT_INTERVAL,
     ),
     startTime: Date.now(),
   });
@@ -648,7 +648,7 @@ export async function addNewGame(gameId, initialScores = null) {
   } catch (error) {
     console.error(
       `Error recording game start action for game ${gameId}:`,
-      error
+      error,
     );
   }
 }
@@ -754,12 +754,12 @@ async function updateGameScoreInDatabase(gameId, team1Score, team2Score) {
         where: {
           gameId: gameId,
         },
-      }
+      },
     );
   } catch (error) {
     console.error(
       `Error updating game score in database for game ${gameId}:`,
-      error
+      error,
     );
   }
 }
