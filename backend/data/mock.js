@@ -1,13 +1,15 @@
 import { User } from "../models/users.js";
 
 export const MOCK_USER = {
-  userId: "f7ce258b-9598-4036-a17e-b132d07b9fa5",
+  // NOTE: We set the actual userId after the user is created in the database.
+  // This way in production, the userId never matches.
+  userId: "MOCK_USER_1",
   name: "Mock User",
   avatar: null,
 };
 
 export const MOCK_USER_2 = {
-  userId: "a1b2c3d4-5678-9012-3456-789012345678",
+  userId: "MOCK_USER_2",
   name: "Mock User 2",
   avatar: null,
 };
@@ -30,36 +32,52 @@ export const setupMockUsers = () => {
   }
 
   // Setup first mock user
-  User.findByPk(MOCK_USER.userId).then((user) => {
+  User.findOne({
+    where: {
+      name: MOCK_USER.name,
+      provider: "github",
+      providerUserId: "mock",
+    },
+  }).then((user) => {
     if (user) {
       console.log("Mock user 1 already exists, skipping creation.");
+      MOCK_USER.userId = user.userId;
       return;
     }
 
     User.create({
-      userId: MOCK_USER.userId,
       name: MOCK_USER.name,
       email: "example@gmail.com",
       provider: "github",
       providerUserId: "mock",
       active: true,
+    }).then((user) => {
+      MOCK_USER.userId = user.userId;
     });
   });
 
   // Setup second mock user
-  User.findByPk(MOCK_USER_2.userId).then((user) => {
+  User.findOne({
+    where: {
+      name: MOCK_USER_2.name,
+      provider: "github",
+      providerUserId: "mock2",
+    },
+  }).then((user) => {
     if (user) {
       console.log("Mock user 2 already exists, skipping creation.");
+      MOCK_USER_2.userId = user.userId;
       return;
     }
 
     User.create({
-      userId: MOCK_USER_2.userId,
       name: MOCK_USER_2.name,
       email: "example2@gmail.com",
       provider: "github",
       providerUserId: "mock2",
       active: true,
+    }).then((user) => {
+      MOCK_USER_2.userId = user.userId;
     });
   });
 
