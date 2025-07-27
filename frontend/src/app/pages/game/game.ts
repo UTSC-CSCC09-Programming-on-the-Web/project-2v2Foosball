@@ -38,24 +38,48 @@ export class Game implements OnInit, OnDestroy {
         figures: [{ y: 250 }],
       },
       {
-        x: 300,
+        x: 200,
         vy: 0,
         figureCount: 3,
-        figures: [{ y: 100 }, { y: 250 }, { y: 400 }],
+        figures: [{ y: 125 }, { y: 250 }, { y: 375 }],
+      },
+      {
+        x: 300,
+        vy: 0,
+        figureCount: 1,
+        figures: [{ y: 250 }],
+      },
+      {
+        x: 400,
+        vy: 0,
+        figureCount: 3,
+        figures: [{ y: 125 }, { y: 250 }, { y: 375 }],
       },
     ],
     team2: [
       {
+        x: 800,
+        vy: 0,
+        figureCount: 1,
+        figures: [{ y: 250 }],
+      },
+      {
         x: 900,
         vy: 0,
         figureCount: 3,
-        figures: [{ y: 100 }, { y: 250 }, { y: 400 }],
+        figures: [{ y: 125 }, { y: 250 }, { y: 375 }],
+      },
+      {
+        x: 1000,
+        vy: 0,
+        figureCount: 1,
+        figures: [{ y: 250 }],
       },
       {
         x: 1100,
         vy: 0,
-        figureCount: 1,
-        figures: [{ y: 250 }],
+        figureCount: 3,
+        figures: [{ y: 125 }, { y: 250 }, { y: 375 }],
       },
     ],
   };
