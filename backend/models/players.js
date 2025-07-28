@@ -24,6 +24,18 @@ export const Player = sequelize.define(
         },
       },
     },
+    rodPosition: {
+      type: DataTypes.STRING,
+      // allowNull: true, // Allow null for existing records
+      allowNull: false,
+      defaultValue: "front", // Default to front position
+      validate: {
+        isIn: {
+          args: [["front", "back"]],
+          msg: "Rod position must be either 'front' or 'back'",
+        },
+      },
+    },
   },
   {
     hooks: {

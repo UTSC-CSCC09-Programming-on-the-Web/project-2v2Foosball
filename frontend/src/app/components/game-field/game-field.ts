@@ -62,7 +62,8 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
   };
   @Input({ required: true }) config!: GameConfig;
   @Input({ required: true }) team!: 1 | 2;
-  @Input({ required: true }) activeRod!: 1 | 2;
+  @Input({ required: true }) activeRod!: 1 | 2 | 3 | 4;
+  @Input({ required: true }) rodPosition!: 'front' | 'back';
 
   @Output() keystate = new EventEmitter<KeyboardEvent>();
 
@@ -374,23 +375,47 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
   private drawRods(): void {
     // Draw team 1 rods (red team)
     this.interpolatedRods.team1.forEach((rod, i) => {
-      this.drawRod(rod, '#ff4444', this.team === 1 && this.activeRod - 1 === i);
+      const rodNumber = i + 1; // Convert 0-based index to 1-based rod number
+      const isActiveRod = this.team === 1 && this.activeRod === rodNumber;
+      const isControllableRod =
+        this.team === 1 && this.isRodControllable(rodNumber);
+      this.drawRod(rod, '#ff4444', isActiveRod, isControllableRod);
     });
 
     // Draw team 2 rods (blue team)
     this.interpolatedRods.team2.forEach((rod, i) => {
-      this.drawRod(rod, '#4444ff', this.team === 2 && this.activeRod - 1 === i);
+      const rodNumber = i + 1; // Convert 0-based index to 1-based rod number
+      const isActiveRod = this.team === 2 && this.activeRod === rodNumber;
+      const isControllableRod =
+        this.team === 2 && this.isRodControllable(rodNumber);
+      this.drawRod(rod, '#4444ff', isActiveRod, isControllableRod);
     });
+  }
+
+  // Helper method to check if a rod is controllable by the current player
+  private isRodControllable(rodNumber: number): boolean {
+    const allowedRods = this.rodPosition === 'front' ? [1, 2] : [3, 4];
+    return allowedRods.includes(rodNumber);
   }
 
   private drawRod(
     rod: InterpolatedPlayerRodState,
     color: string,
     active: boolean,
+    controllable: boolean = false,
   ): void {
-    // Draw the rod itself
-    this.ctx.strokeStyle = active ? '#000000' : '#888888';
-    this.ctx.lineWidth = this.config.rodWidth;
+    // Draw the rod itself with different styling based on status
+    if (active) {
+      this.ctx.strokeStyle = '#000000'; // Black for active rod
+      this.ctx.lineWidth = this.config.rodWidth + 2; // Thicker for active
+    } else if (controllable) {
+      this.ctx.strokeStyle = '#555555'; // Darker gray for controllable rods
+      this.ctx.lineWidth = this.config.rodWidth + 1; // Slightly thicker for controllable
+    } else {
+      this.ctx.strokeStyle = '#888888'; // Light gray for other rods
+      this.ctx.lineWidth = this.config.rodWidth;
+    }
+
     this.ctx.beginPath();
     this.ctx.moveTo(rod.x, 0);
     this.ctx.lineTo(rod.x, this.config.rodHeight);
@@ -398,7 +423,7 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
 
     // Draw the figures on the rod
     rod.figures.forEach((figure) => {
-      this.drawFigure(rod.x, figure, color);
+      this.drawFigure(rod.x, figure, color, active, controllable);
     });
   }
 
@@ -406,6 +431,8 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     x: number,
     figure: InterpolatedFigureState,
     color: string,
+    active: boolean = false,
+    controllable: boolean = false,
   ): void {
     // Figure shadow
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
@@ -413,21 +440,38 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     this.ctx.arc(x + 1, figure.y + 1, this.config.figureRadius, 0, 2 * Math.PI);
     this.ctx.fill();
 
-    // Figure body
-    this.ctx.fillStyle = color;
+    // Figure body - adjust brightness based on status
+    let figureColor = color;
+    if (active) {
+      // Make active figures brighter
+      figureColor = this.adjustColorBrightness(color, 20);
+    } else if (controllable) {
+      // Make controllable figures slightly brighter
+      figureColor = this.adjustColorBrightness(color, 10);
+    }
+
+    this.ctx.fillStyle = figureColor;
     this.ctx.beginPath();
     this.ctx.arc(x, figure.y, this.config.figureRadius, 0, 2 * Math.PI);
     this.ctx.fill();
 
     // Figure outline
-    this.ctx.strokeStyle = '#ffffff';
-    this.ctx.lineWidth = 2;
-    this.ctx.stroke();
-
-    // Figure highlight
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    this.ctx.strokeStyle = active ? '#ffffff' : '#000000';
+    this.ctx.lineWidth = active ? 2 : 1;
     this.ctx.beginPath();
-    this.ctx.arc(x - 3, figure.y - 3, this.config.figureRadius, 0, 2 * Math.PI);
-    this.ctx.fill();
+    this.ctx.arc(x, figure.y, this.config.figureRadius, 0, 2 * Math.PI);
+    this.ctx.stroke();
+  }
+
+  // Helper method to adjust color brightness
+  private adjustColorBrightness(color: string, amount: number): string {
+    // Simple brightness adjustment for hex colors
+    const hex = color.replace('#', '');
+    const r = Math.min(255, parseInt(hex.substring(0, 2), 16) + amount);
+    const g = Math.min(255, parseInt(hex.substring(2, 4), 16) + amount);
+    const b = Math.min(255, parseInt(hex.substring(4, 6), 16) + amount);
+    return `#${r.toString(16).padStart(2, '0')}${g
+      .toString(16)
+      .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   }
 }

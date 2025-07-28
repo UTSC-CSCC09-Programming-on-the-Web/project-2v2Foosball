@@ -481,26 +481,26 @@ function resetRodsToDefault(game) {
   game.state.team1.rods[3].figures[1].y = 250;
   game.state.team1.rods[3].figures[2].y = 375;
 
-  // Reset team2 rods to default positions (1-3-1-3 formation)
-  // Rod 1 (1 figure)
+  // Reset team2 rods to default positions (3-1-3-1 formation)
+  // Rod 1 (3 figures)
   game.state.team2.rods[0].vy = 0;
-  game.state.team2.rods[0].figures[0].y = 250;
+  game.state.team2.rods[0].figures[0].y = 125;
+  game.state.team2.rods[0].figures[1].y = 250;
+  game.state.team2.rods[0].figures[2].y = 375;
 
-  // Rod 2 (3 figures)
+  // Rod 2 (1 figure)
   game.state.team2.rods[1].vy = 0;
-  game.state.team2.rods[1].figures[0].y = 125;
-  game.state.team2.rods[1].figures[1].y = 250;
-  game.state.team2.rods[1].figures[2].y = 375;
+  game.state.team2.rods[1].figures[0].y = 250;
 
-  // Rod 3 (1 figure)
+  // Rod 3 (3 figures)
   game.state.team2.rods[2].vy = 0;
-  game.state.team2.rods[2].figures[0].y = 250;
+  game.state.team2.rods[2].figures[0].y = 125;
+  game.state.team2.rods[2].figures[1].y = 250;
+  game.state.team2.rods[2].figures[2].y = 375;
 
-  // Rod 4 (3 figures)
+  // Rod 4 (1 figure)
   game.state.team2.rods[3].vy = 0;
-  game.state.team2.rods[3].figures[0].y = 125;
-  game.state.team2.rods[3].figures[1].y = 250;
-  game.state.team2.rods[3].figures[2].y = 375;
+  game.state.team2.rods[3].figures[0].y = 250;
 }
 
 async function endGame(game, gameId) {
@@ -764,32 +764,22 @@ export const GAME_DEFAULTS = {
         {
           x: 800,
           vy: 0,
-          figureCount: 1,
+          figureCount: 3,
           figures: [
             {
+              y: 125,
+            },
+            {
               y: 250,
+            },
+            {
+              y: 375,
             },
           ],
         },
         {
           x: 900,
           vy: 0,
-          figureCount: 3,
-          figures: [
-            {
-              y: 125,
-            },
-            {
-              y: 250,
-            },
-            {
-              y: 375,
-            },
-          ],
-        },
-        {
-          x: 1000,
-          vy: 0,
           figureCount: 1,
           figures: [
             {
@@ -798,7 +788,7 @@ export const GAME_DEFAULTS = {
           ],
         },
         {
-          x: 1100,
+          x: 1000,
           vy: 0,
           figureCount: 3,
           figures: [
@@ -810,6 +800,16 @@ export const GAME_DEFAULTS = {
             },
             {
               y: 375,
+            },
+          ],
+        },
+        {
+          x: 1100,
+          vy: 0,
+          figureCount: 1,
+          figures: [
+            {
+              y: 250,
             },
           ],
         },

@@ -60,26 +60,26 @@ export class Game implements OnInit, OnDestroy {
       {
         x: 800,
         vy: 0,
-        figureCount: 1,
-        figures: [{ y: 250 }],
+        figureCount: 3,
+        figures: [{ y: 125 }, { y: 250 }, { y: 375 }],
       },
       {
         x: 900,
         vy: 0,
-        figureCount: 3,
-        figures: [{ y: 125 }, { y: 250 }, { y: 375 }],
-      },
-      {
-        x: 1000,
-        vy: 0,
         figureCount: 1,
         figures: [{ y: 250 }],
       },
       {
-        x: 1100,
+        x: 1000,
         vy: 0,
         figureCount: 3,
         figures: [{ y: 125 }, { y: 250 }, { y: 375 }],
+      },
+      {
+        x: 1100,
+        vy: 0,
+        figureCount: 1,
+        figures: [{ y: 250 }],
       },
     ],
   };
@@ -99,10 +99,21 @@ export class Game implements OnInit, OnDestroy {
   };
 
   team: 1 | 2 = 1;
-  activeRod: 1 | 2 = 1;
+  rodPosition: 'front' | 'back' = 'front'; // front controls rods 1-2, back controls rods 3-4
+  activeRod: 1 | 2 | 3 | 4 = 1;
   private keystates: Set<string> = new Set();
   loading: boolean = true;
   private receivedInitialState: boolean = false;
+
+  // Helper method to get the first allowed rod
+  private getFirstAllowedRod(): 1 | 2 | 3 | 4 {
+    return this.rodPosition === 'front' ? 1 : 3;
+  }
+
+  // Helper method to get the second allowed rod
+  private getSecondAllowedRod(): 1 | 2 | 3 | 4 {
+    return this.rodPosition === 'front' ? 2 : 4;
+  }
 
   // Goal celebration
   showGoalCelebration: boolean = false;
@@ -215,6 +226,7 @@ export class Game implements OnInit, OnDestroy {
         };
         this.config = game.config;
         this.team = game.meta.team;
+        this.rodPosition = game.meta.rodPosition;
         this.activeRod = game.meta.activeRod;
         this.loading = false;
       },
@@ -276,7 +288,9 @@ export class Game implements OnInit, OnDestroy {
 
     if (event.type === 'keydown') {
       if (key === 'a') {
-        if (this.activeRod === 2) {
+        // Switch to the first rod in the player's range
+        const firstRod = this.getFirstAllowedRod();
+        if (this.activeRod === this.getSecondAllowedRod()) {
           // If w or s is held, stop previous rod
           if (this.keystates.has('w') || this.keystates.has('s')) {
             this.socketService.emit('game.keypress', {
@@ -285,10 +299,12 @@ export class Game implements OnInit, OnDestroy {
               type: 'keyup',
             });
           }
-          this.activeRod = 1;
+          this.activeRod = firstRod;
         }
       } else if (key === 'd') {
-        if (this.activeRod === 1) {
+        // Switch to the second rod in the player's range
+        const secondRod = this.getSecondAllowedRod();
+        if (this.activeRod === this.getFirstAllowedRod()) {
           // If w or s is held, stop previous rod
           if (this.keystates.has('w') || this.keystates.has('s')) {
             this.socketService.emit('game.keypress', {
@@ -297,7 +313,7 @@ export class Game implements OnInit, OnDestroy {
               type: 'keyup',
             });
           }
-          this.activeRod = 2;
+          this.activeRod = secondRod;
         }
       } else {
         this.keystates.add(key);

@@ -67,7 +67,8 @@ export interface GameConfig {
 
 export interface GameMeta {
   team: 1 | 2;
-  activeRod: 1 | 2;
+  rodPosition: 'front' | 'back';
+  activeRod: 1 | 2 | 3 | 4;
 }
 
 export interface GameData {
