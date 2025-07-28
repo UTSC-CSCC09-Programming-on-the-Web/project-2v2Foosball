@@ -409,7 +409,7 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
       this.ctx.strokeStyle = '#000000'; // Black for active rod
       this.ctx.lineWidth = this.config.rodWidth + 2; // Thicker for active
     } else if (controllable) {
-      this.ctx.strokeStyle = '#555555'; // Darker gray for controllable rods
+      this.ctx.strokeStyle = '#ffffff'; // White for controllable rods
       this.ctx.lineWidth = this.config.rodWidth + 1; // Slightly thicker for controllable
     } else {
       this.ctx.strokeStyle = '#888888'; // Light gray for other rods
@@ -440,17 +440,8 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     this.ctx.arc(x + 1, figure.y + 1, this.config.figureRadius, 0, 2 * Math.PI);
     this.ctx.fill();
 
-    // Figure body - adjust brightness based on status
-    let figureColor = color;
-    if (active) {
-      // Make active figures brighter
-      figureColor = this.adjustColorBrightness(color, 20);
-    } else if (controllable) {
-      // Make controllable figures slightly brighter
-      figureColor = this.adjustColorBrightness(color, 10);
-    }
-
-    this.ctx.fillStyle = figureColor;
+    // Figure body - keep original team color
+    this.ctx.fillStyle = color;
     this.ctx.beginPath();
     this.ctx.arc(x, figure.y, this.config.figureRadius, 0, 2 * Math.PI);
     this.ctx.fill();
@@ -461,17 +452,5 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     this.ctx.beginPath();
     this.ctx.arc(x, figure.y, this.config.figureRadius, 0, 2 * Math.PI);
     this.ctx.stroke();
-  }
-
-  // Helper method to adjust color brightness
-  private adjustColorBrightness(color: string, amount: number): string {
-    // Simple brightness adjustment for hex colors
-    const hex = color.replace('#', '');
-    const r = Math.min(255, parseInt(hex.substring(0, 2), 16) + amount);
-    const g = Math.min(255, parseInt(hex.substring(2, 4), 16) + amount);
-    const b = Math.min(255, parseInt(hex.substring(4, 6), 16) + amount);
-    return `#${r.toString(16).padStart(2, '0')}${g
-      .toString(16)
-      .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   }
 }
