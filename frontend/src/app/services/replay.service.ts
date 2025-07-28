@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { GameData } from '../types/game';
 import { ReplayAction } from '../types/replay';
+import { SocketService } from './socket.service';
 
 export interface Replay {
   gameId: string;
@@ -18,7 +19,7 @@ export interface Replay {
 export class ReplayService {
   private currentGameId = new BehaviorSubject<string | null>(null);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private socketService: SocketService) {}
 
   // Fetch paginated game history for a user
   getGameHistory(userId: string, page: number = 0): Observable<GameData[]> {
@@ -43,6 +44,7 @@ export class ReplayService {
   // Set the current game being spectated
   setCurrentGame(gameId: string): void {
     this.currentGameId.next(gameId);
+    this.socketService.emit('replay.start', gameId);
   }
 
   // Get the current game being spectated
