@@ -30,7 +30,7 @@ export function registerReplayListeners(io, socket) {
         socket.emit("replay.error", "Game is not finished");
         return;
       }
-      // Use default config/state for replay, will be overwritten by actions
+      // Use default config/state for replay
       game = {
         gameId: gameFromDb.gameId,
         status: gameFromDb.status,
@@ -112,11 +112,12 @@ export function registerReplayListeners(io, socket) {
       const elapsedMs = Date.now() - startTime;
       const { state, config, score } = buildGameState(elapsedMs);
       lastState = { ball: state.ball, rods: { team1: state.team1.rods, team2: state.team2.rods }, config, score };
+
       io.to(`replay-${gameId}`).emit("replay.state", lastState);
       // End replay if time exceeds last action
       if (elapsedMs >= actions[actions.length - 1].elapsedMs) {
         clearInterval(replayTimer);
-        io.to(`replay-${gameId}`).emit("replay.stopped");
+        io.to(`replay-${gameId}`).emit("replay.ended");
       }
     }
 

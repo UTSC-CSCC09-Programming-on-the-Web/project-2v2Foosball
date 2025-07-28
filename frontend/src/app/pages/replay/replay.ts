@@ -72,6 +72,22 @@ export class ReplayPage implements OnInit, OnDestroy {
       .subscribe(() => {
         this.isLoading = false;
       });
+
+    // Subscribe to replay.state updates from backend
+    this.replayStateSub = this.socketService
+      .listen<any>('replay.state')
+      .subscribe((state) => {
+        if (state) {
+          this.ball = state.ball;
+          this.rods = state.rods;
+          this.config = state.config;
+          this.score = state.score;
+        }
+      });
+
+    this.replayStoppedSub = this.socketService
+      .listen<any>('replay.stopped')
+      .subscribe(() => {});
   }
 
   ngOnDestroy(): void {
