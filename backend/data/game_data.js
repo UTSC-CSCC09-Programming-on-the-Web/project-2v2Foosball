@@ -109,7 +109,7 @@ function updateFunction(gameId) {
   });
 }
 
-function updateRods(game, team) {
+export function updateRods(game, team) {
   game.state[`team${team}`].rods.forEach((rod) => {
     const lambda = (figure) => {
       figure.y += rod.vy;
@@ -140,7 +140,7 @@ function updateRods(game, team) {
   });
 }
 
-function updateGamePhysics(game) {
+export function updateGamePhysics(game) {
   const ball = game.state.ball;
   // Update ball position based on its velocity
   ball.x += ball.vx;
@@ -159,7 +159,7 @@ function updateGamePhysics(game) {
   // }
 }
 
-function checkBounds(game, gameId) {
+export function checkBounds(game, gameId) {
   const ball = game.state.ball;
   const { fieldWidth, fieldHeight, ballRadius } = game.config;
 
@@ -183,7 +183,7 @@ function checkBounds(game, gameId) {
   ball.vy = yCheck.vel;
 }
 
-function checkCollisions(game, gameId) {
+export function checkCollisions(game, gameId) {
   const ball = game.state.ball;
   // If the ball is on the left side of the field, check team1 rods
   if (ball.x < game.config.fieldWidth / 2) {
@@ -229,7 +229,7 @@ function checkCollisions(game, gameId) {
   }
 }
 
-function checkGoals(game, gameId) {
+export function checkGoals(game, gameId) {
   const ball = game.state.ball;
   const { fieldWidth, fieldHeight, goalWidth, goalHeight, ballRadius } =
     game.config;
