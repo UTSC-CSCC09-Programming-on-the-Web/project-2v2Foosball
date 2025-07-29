@@ -132,6 +132,8 @@ export class ReplayController {
       case "ball_reset":
         this.isPaused = false;
         this.game.state.ball = { ...data.ball };
+        this.game.state.team1.rods = GAME_DEFAULTS.state.team1.rods;
+        this.game.state.team2.rods = GAME_DEFAULTS.state.team2.rods;
         break;
       case "goal":
         // Update scores if present
