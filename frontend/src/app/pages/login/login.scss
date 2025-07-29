@@ -33,44 +33,71 @@
   gap: 20px;
 }
 
-.github-login-btn {
+.login-btn {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   padding: 12px 24px;
-  background-color: black;
   border: none;
   border-radius: 8px;
-  color: white;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   min-height: 48px;
 }
 
-.github-login-btn:hover:not(:disabled) {
+.login-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
-.github-login-btn:active:not(:disabled) {
+.login-btn:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.github-login-btn:disabled {
+.login-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
+.google-login-btn {
+  background-color: #4285f4;
+  color: white;
+}
+
+.github-login-btn {
+  background-color: black;
+  color: white;
+}
+
+.mock-login-btn1 {
+  background-color: lightgray;
+  color: black;
+}
+
+.mock-login-btn2 {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.mock-login-btn3 {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.mock-login-btn4{
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
 .btn-content {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.github-icon {
+.github-icon, .google-icon {
   flex-shrink: 0;
 }
 
@@ -91,7 +118,6 @@
   }
 }
 
-/* Responsive design */
 @media (max-width: 480px) {
   .login-container {
     padding: 16px;
@@ -102,41 +128,11 @@
   }
 }
 
-.mock-login-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 12px 24px;
-  background-color: lightgray;
-  border: none;
-  border-radius: 8px;
-  color: black;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 48px;
-  margin-bottom: 8px;
-}
-
-.mock-login-btn.mock-user-2 {
-  background-color: #e3f2fd;
-  color: #1565c0;
-}
-
-.mock-login-btn.mock-user-3 {
-  background-color: #e8f5e8;
-  color: #2e7d32;
-}
-
-.mock-login-btn.mock-user-4 {
-  background-color: #fff3e0;
-  color: #ef6c00;
-}
-
 .mock-login-section {
   margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .mock-divider {
@@ -157,30 +153,4 @@
 
 .mock-divider span {
   padding: 0 16px;
-}
-
-.mock-login-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.mock-login-btn.mock-user-2:hover:not(:disabled) {
-  background-color: #bbdefb;
-}
-
-.mock-login-btn.mock-user-3:hover:not(:disabled) {
-  background-color: #c8e6c9;
-}
-
-.mock-login-btn.mock-user-4:hover:not(:disabled) {
-  background-color: #ffe0b2;
-}
-
-.mock-login-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.mock-login-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
 }

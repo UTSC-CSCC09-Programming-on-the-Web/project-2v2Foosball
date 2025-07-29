@@ -24,6 +24,9 @@ export class ReplayService {
   getGameHistory(userId: string, page: number = 0): Observable<GameData[]> {
     return this.http.get<GameData[]>(
       `${environment.apiUrl}/replays/${userId}?page=${page}`,
+      {
+        withCredentials: true,
+      }
     );
   }
 
@@ -31,6 +34,9 @@ export class ReplayService {
   getGameActions(gameId: string): Observable<ReplayAction[]> {
     return this.http.get<ReplayAction[]>(
       `${environment.apiUrl}/replays/actions/${gameId}`,
+      {
+        withCredentials: true,
+      }
     );
   }
 

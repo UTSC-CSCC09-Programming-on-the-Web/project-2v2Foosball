@@ -10,16 +10,15 @@ import { Router } from '@angular/router';
   styleUrl: './login.scss',
 })
 export class Login {
-  isLoading = false;
+  isGithubLoading = false;
+  isGoogleLoading = false;
   isMockEnv = environment.production === false;
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-  ) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
-  onLogin(provider: 'github') {
-    this.isLoading = true;
+  onLogin(provider: 'github' | 'google') {
+    if (provider === 'github') this.isGithubLoading = true;
+    else this.isGoogleLoading = true;
     this.authService.login(provider);
   }
 

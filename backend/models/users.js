@@ -25,7 +25,7 @@ export const User = sequelize.define(
     },
     provider: {
       type: DataTypes.ENUM,
-      values: ["github"],
+      values: ["github", "google"],
       allowNull: false,
     },
     providerUserId: {
@@ -36,9 +36,10 @@ export const User = sequelize.define(
       type: DataTypes.STRING,
       unique: true,
     },
-    stripeSubscriptionId: {
-      type: DataTypes.STRING,
-      unique: true,
+    active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
     },
   },
   {
@@ -47,6 +48,10 @@ export const User = sequelize.define(
         unique: true,
         fields: ["provider", "providerUserId"],
       },
+      {
+        unique: true,
+        fields: ["stripeCustomerId"],
+      },
     ],
-  },
+  }
 );
