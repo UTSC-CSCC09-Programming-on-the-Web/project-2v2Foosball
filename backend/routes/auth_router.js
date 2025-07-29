@@ -57,7 +57,7 @@ authRouter.get(
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      domain: new URL(process.env.BACKEND_URL).hostname,
+      domain: new URL(process.env.FRONTEND_URL).hostname,
     });
 
     // NOTE: Set the authtoken for this request so that CSRF token can be generated
@@ -82,7 +82,7 @@ authRouter.get(
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      domain: new URL(process.env.BACKEND_URL).hostname,
+      domain: new URL(process.env.FRONTEND_URL).hostname,
     });
 
     // NOTE: Set the authtoken for this request so that CSRF token can be generated
@@ -105,7 +105,7 @@ authRouter.post("/mock", (req, res) => {
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    domain: new URL(process.env.BACKEND_URL).hostname,
+    domain: new URL(process.env.FRONTEND_URL).hostname,
   });
 
   req.cookies.authtoken = token;
@@ -126,7 +126,7 @@ authRouter.post("/mock2", (req, res) => {
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    domain: new URL(process.env.BACKEND_URL).hostname,
+    domain: new URL(process.env.FRONTEND_URL).hostname,
   });
 
   req.cookies.authtoken = token;
@@ -147,7 +147,7 @@ authRouter.post("/mock3", (req, res) => {
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    domain: new URL(process.env.BACKEND_URL).hostname,
+    domain: new URL(process.env.FRONTEND_URL).hostname,
   });
   req.cookies.authtoken = token;
   generateCsrfToken(req, res);
@@ -167,7 +167,7 @@ authRouter.post("/mock4", (req, res) => {
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    domain: new URL(process.env.BACKEND_URL).hostname,
+    domain: new URL(process.env.FRONTEND_URL).hostname,
   });
   req.cookies.authtoken = token;
   generateCsrfToken(req, res);
@@ -237,7 +237,7 @@ authRouter.post(
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      domain: new URL(process.env.BACKEND_URL).hostname,
+      domain: new URL(process.env.FRONTEND_URL).hostname,
     });
     res.clearCookie("xsrf-token", {
       httpOnly: false,
