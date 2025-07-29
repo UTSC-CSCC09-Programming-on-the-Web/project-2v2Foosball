@@ -149,6 +149,8 @@ authRouter.post("/mock3", (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     domain: new URL(process.env.BACKEND_URL).hostname,
   });
+  req.cookies.authtoken = token;
+  generateCsrfToken(req, res);
 
   return res.json({ message: "Mock user 3 logged in successfully" });
 });
@@ -167,6 +169,8 @@ authRouter.post("/mock4", (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     domain: new URL(process.env.BACKEND_URL).hostname,
   });
+  req.cookies.authtoken = token;
+  generateCsrfToken(req, res);
 
   return res.json({ message: "Mock user 4 logged in successfully" });
 });
