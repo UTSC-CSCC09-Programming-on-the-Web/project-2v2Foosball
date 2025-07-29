@@ -1,6 +1,11 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/users.js";
-import { MOCK_USER, MOCK_USER_2 } from "../data/mock.js";
+import {
+  MOCK_USER,
+  MOCK_USER_2,
+  MOCK_USER_3,
+  MOCK_USER_4,
+} from "../data/mock.js";
 import { doubleCsrf } from "csrf-csrf";
 
 const createAuthMiddleware = (requireSubscription = true) => {
@@ -18,7 +23,9 @@ const createAuthMiddleware = (requireSubscription = true) => {
 
       if (
         decoded.userId === MOCK_USER.userId ||
-        decoded.userId === MOCK_USER_2.userId
+        decoded.userId === MOCK_USER_2.userId ||
+        decoded.userId === MOCK_USER_3.userId ||
+        decoded.userId === MOCK_USER_4.userId
       ) {
         if (process.env.NODE_ENV !== "development") {
           throw new Error("Mock users are only allowed in development mode");
@@ -80,7 +87,9 @@ export const isAuthSocket = async (socket, next) => {
 
     if (
       decoded.userId === MOCK_USER.userId ||
-      decoded.userId === MOCK_USER_2.userId
+      decoded.userId === MOCK_USER_2.userId ||
+      decoded.userId === MOCK_USER_3.userId ||
+      decoded.userId === MOCK_USER_4.userId
     ) {
       if (process.env.NODE_ENV !== "development") {
         return next(

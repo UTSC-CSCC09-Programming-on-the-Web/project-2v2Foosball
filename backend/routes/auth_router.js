@@ -175,7 +175,7 @@ authRouter.post("/mock4", (req, res) => {
   return res.json({ message: "Mock user 4 logged in successfully" });
 });
 
-authRouter.get("/me", isAuth, async (req, res) => {
+authRouter.get("/me", isAuthWithoutSubscription, async (req, res) => {
   console.log(req.user.userId, MOCK_USER.userId);
   if (
     process.env.NODE_ENV === "development" &&
