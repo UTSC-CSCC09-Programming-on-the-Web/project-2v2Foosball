@@ -1,14 +1,13 @@
 import { GameAction } from "../models/game_actions.js";
 
-import { GAME_DEFAULTS } from "./game_data.js";
+import { endGame, GAME_DEFAULTS } from "./game_data.js";
 import {
   updateGamePhysics,
   checkBounds,
   checkCollisions,
   updateRods,
-  checkGoals
+  checkGoals,
 } from "./game_data.js";
-
 
 export class ReplayController {
   /**
@@ -24,6 +23,7 @@ export class ReplayController {
     this.game = null; // Will hold the game state
     this.currentFrame = 0;
     this.isPaused = false;
+    this.next = null;
   }
 
   // Load game actions from the database
@@ -38,26 +38,32 @@ export class ReplayController {
         return;
       }
       // Map actions by frame number
-      actions.forEach(action => {
-        this.actions.set(action.frameNumber, action);
+      actions.forEach((action) => {
+        // A map of arrrays
+        if (this.actions.has(action.frameNumber)) {
+          this.actions.get(action.frameNumber).push(action);
+        } else {
+          this.actions.set(action.frameNumber, [action]);
+        }
       });
     } catch (err) {
       this.socket.emit("replay.error", "Could not fetch actions");
     }
   }
 
-
   // Start the replay
   async start() {
     this.isPaused = false;
     this.currentFrame = 0;
-    
+
+    console.log(this.actions.get(0));
+
     // Initial game state should be default
     this.game = {
       gameId: this.gameId,
       status: "replaying",
-      config: GAME_DEFAULTS.config,
-      state: JSON.parse(JSON.stringify(GAME_DEFAULTS.state)),
+      config: this.actions.get(0)[0].data.config,
+      state: this.actions.get(0)[0].data.state,
     };
 
     this.playNextFrame();
@@ -67,10 +73,12 @@ export class ReplayController {
   async playNextFrame() {
     if (this.isPaused || this.currentFrame >= this.actions.length) return;
 
-    const action = this.actions[this.currentFrame];
+    const actions = this.actions.get(this.currentFrame);
 
     // Apply the action to the local game state
-    if (action) this.applyActionToGame(action);
+    if (actions) {
+      actions.forEach((action) => this.applyActionToGame(action));
+    }
 
     // Run physics and logic as in game_data.js
     updateGamePhysics(this.game);
@@ -79,7 +87,6 @@ export class ReplayController {
     checkGoals(this.game, this.gameId);
     updateRods(this.game, 1);
     updateRods(this.game, 2);
-
 
     // Emit the updated state to the replay room
     this.io.to(`replay-${this.gameId}`).emit("replay.state", {
@@ -96,7 +103,7 @@ export class ReplayController {
     });
 
     this.currentFrame++;
-    setTimeout(() => this.playNextFrame(), GAME_DEFAULTS.REPLAY_SPEED);
+    this.next = setTimeout(() => this.playNextFrame(), 1000 / 60);
   }
 
   // Apply a single action to the local game state
@@ -106,13 +113,14 @@ export class ReplayController {
     switch (type) {
       case "game_start":
         // Reset to initial state
-        this.game.state = JSON.parse(JSON.stringify(GAME_DEFAULTS.state));
-        this.game.config = JSON.parse(JSON.stringify(GAME_DEFAULTS.config));
+        // this.game.state = JSON.parse(JSON.stringify(GAME_DEFAULTS.state));
+        // this.game.config = JSON.parse(JSON.stringify(GAME_DEFAULTS.config));
         break;
       case "player_input_start": {
         const { team, activeRod, key } = data;
         const rod = this.game.state[`team${team}`].rods[activeRod - 1];
-        rod.vy = key === "w" ? -this.game.config.rodSpeed : this.game.config.rodSpeed;
+        rod.vy =
+          key === "w" ? -this.game.config.rodSpeed : this.game.config.rodSpeed;
         break;
       }
       case "player_input_end": {
@@ -122,16 +130,25 @@ export class ReplayController {
         break;
       }
       case "ball_reset":
+        this.isPaused = false;
         this.game.state.ball = { ...data.ball };
         break;
       case "goal":
         // Update scores if present
-        if (data && typeof data.score1 === "number" && typeof data.score2 === "number") {
+        if (
+          data &&
+          typeof data.score1 === "number" &&
+          typeof data.score2 === "number"
+        ) {
           this.game.state.team1.score = data.score1;
           this.game.state.team2.score = data.score2;
         }
         break;
       case "game_ended":
+        this.isPaused = true;
+        this.socket.emit("replay.paused");
+        // endGame(this.game, this.gameId);
+        clearTimeout(this.next);
         // Optionally handle end state
         break;
       default:
@@ -145,7 +162,7 @@ export class ReplayController {
     this.socket.emit("replay.paused");
 
     // Remove any scheduled frame updates
-    clearTimeout(this.playNextFrame);
+    clearTimeout(this.next);
   }
 
   // Resume the replay

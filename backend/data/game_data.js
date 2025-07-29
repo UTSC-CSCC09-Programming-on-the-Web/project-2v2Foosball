@@ -272,20 +272,22 @@ export function checkGoals(game, gameId) {
     updateGameScoreInDatabase(
       gameId,
       game.state.team1.score,
-      game.state.team2.score,
+      game.state.team2.score
     );
 
-    GameAction.create({
-      gameId,
-      elapsedMs: Date.now() - game.startTime,
-      frameNumber: game.frameCount,
-      type: "goal",
-      userId: null,
-      data: {
-        score1: game.state.team1.score,
-        score2: game.state.team2.score,
-      },
-    });
+    if (game.status !== "replaying") {
+      GameAction.create({
+        gameId,
+        elapsedMs: Date.now() - game.startTime,
+        frameNumber: game.frameCount,
+        type: "goal",
+        userId: null,
+        data: {
+          score1: game.state.team1.score,
+          score2: game.state.team2.score,
+        },
+      });
+    }
 
     // Check if game should end
     if (game.state.team2.score >= game.config.maxScore) {
@@ -294,7 +296,8 @@ export function checkGoals(game, gameId) {
       return; // Don't continue with celebration, game is over
     } else {
       // Pause the game for celebration
-      pauseGameForCelebration(game, gameId);
+      if (game.status === "replaying") game.state.isPaused = true;
+      else pauseGameForCelebration(game, gameId);
     }
   } else if (ballInRightGoal) {
     // Ball is in right goal - Team 1 scores
@@ -306,20 +309,22 @@ export function checkGoals(game, gameId) {
     updateGameScoreInDatabase(
       gameId,
       game.state.team1.score,
-      game.state.team2.score,
+      game.state.team2.score
     );
 
-    GameAction.create({
-      gameId,
-      elapsedMs: Date.now() - game.startTime,
-      frameNumber: game.frameCount,
-      type: "goal",
-      userId: null,
-      data: {
-        score1: game.state.team1.score,
-        score2: game.state.team2.score,
-      },
-    });
+    if (game.status !== "replaying") {
+      GameAction.create({
+        gameId,
+        elapsedMs: Date.now() - game.startTime,
+        frameNumber: game.frameCount,
+        type: "goal",
+        userId: null,
+        data: {
+          score1: game.state.team1.score,
+          score2: game.state.team2.score,
+        },
+      });
+    }
 
     // Check if game should end
     if (game.state.team1.score >= game.config.maxScore) {
@@ -328,7 +333,8 @@ export function checkGoals(game, gameId) {
       return; // Don't continue with celebration, game is over
     } else {
       // Pause the game for celebration
-      pauseGameForCelebration(game, gameId);
+      if (game.status === "replaying") game.state.isPaused = true;
+      else pauseGameForCelebration(game, gameId);
     }
   }
 
@@ -355,6 +361,7 @@ export function checkGoals(game, gameId) {
 function pauseGameForCelebration(game, gameId) {
   // Pause the game
   game.state.isPaused = true;
+  console.log(`Game ${gameId} paused for celebration after goal.`);
 
   // Clear any existing pause timer
   if (game.state.pauseTimer) {
@@ -401,20 +408,21 @@ function pauseGameForCelebration(game, gameId) {
 
     // Store the ball randomization event for replay
     try {
-      await GameAction.create({
-        gameId,
-        elapsedMs: Date.now() - game.startTime,
-        frameNumber: game.frameCount,
-        type: "ball_reset",
-        userId: null,
-        data: {
-          ball: { ...game.state.ball },
-        },
-      });
+      if (game.status !== "replaying")
+        await GameAction.create({
+          gameId,
+          elapsedMs: Date.now() - game.startTime,
+          frameNumber: game.frameCount,
+          type: "ball_reset",
+          userId: null,
+          data: {
+            ball: { ...game.state.ball },
+          },
+        });
     } catch (error) {
       console.error(
         `Error recording ball randomization for game ${gameId}:`,
-        error,
+        error
       );
     }
 
@@ -509,7 +517,7 @@ function resetRodsToDefault(game) {
   game.state.team2.rods[3].figures[0].y = 250;
 }
 
-async function endGame(game, gameId) {
+export async function endGame(game, gameId) {
   // Determine the winner
   const winner = game.state.team1.score > game.state.team2.score ? 1 : 2;
 
@@ -576,7 +584,7 @@ async function endGame(game, gameId) {
         where: {
           gameId: gameId,
         },
-      },
+      }
     );
   } catch (error) {
     console.error(`Error updating game status for game ${gameId}:`, error);
@@ -612,20 +620,21 @@ async function endGame(game, gameId) {
 
   // Game end action logging
   try {
-    await GameAction.create({
-      gameId,
-      elapsedMs: Date.now() - game.startTime,
-      frameNumber: game.frameCount,
-      type: "game_ended",
-      userId: null, // No specific user for game end
-      data: {
-        winner: winner,
-        finalScore: {
-          team1: game.state.team1.score,
-          team2: game.state.team2.score,
+    if (game.status !== "replaying")
+      await GameAction.create({
+        gameId,
+        elapsedMs: Date.now() - game.startTime,
+        frameNumber: game.frameCount,
+        type: "game_ended",
+        userId: null, // No specific user for game end
+        data: {
+          winner: winner,
+          finalScore: {
+            team1: game.state.team1.score,
+            team2: game.state.team2.score,
+          },
         },
-      },
-    });
+      });
   } catch (error) {
     console.error(`Error recording game end action for game ${gameId}:`, error);
   }
@@ -663,7 +672,7 @@ export async function addNewGame(gameId, initialScores = null) {
     updateFunction: setInterval(() => updateFunction(gameId), 1000 / 30),
     spectatorFunction: setInterval(
       () => spectatorUpdateFunction(gameId),
-      spectatorService.SNAPSHOT_INTERVAL,
+      spectatorService.SNAPSHOT_INTERVAL
     ),
     startTime: Date.now(),
   });
@@ -681,7 +690,7 @@ export async function addNewGame(gameId, initialScores = null) {
   } catch (error) {
     console.error(
       `Error recording game start action for game ${gameId}:`,
-      error,
+      error
     );
   }
 }
@@ -830,21 +839,28 @@ export const GAME_DEFAULTS = {
 // Function to update game scores in the database
 async function updateGameScoreInDatabase(gameId, team1Score, team2Score) {
   try {
-    await Game.update(
-      {
-        score1: team1Score,
-        score2: team2Score,
+    const game = await Game.findOne({
+      where: {
+        gameId: gameId,
       },
-      {
-        where: {
-          gameId: gameId,
-        },
-      },
-    );
+    });
+
+    if (!game) {
+      console.error(`Game with ID ${gameId} not found in database.`);
+      return;
+    }
+
+    if (game.status === "replaying") {
+      return;
+    }
+
+    game.score1 = team1Score;
+    game.score2 = team2Score;
+    await game.save();
   } catch (error) {
     console.error(
       `Error updating game score in database for game ${gameId}:`,
-      error,
+      error
     );
   }
 }
