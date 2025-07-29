@@ -21,6 +21,8 @@ function gameFunction(gameId) {
     return;
   }
 
+  game.frameCount++;
+
   updateGamePhysics(game);
   checkBounds(game, gameId);
   checkCollisions(game, gameId);
@@ -102,6 +104,7 @@ function updateFunction(gameId) {
         score: game.state.team2.score,
         rods: game.state.team2.rods,
       },
+      frameCount: game.frameCount || 0,
     },
   });
 }
@@ -275,6 +278,7 @@ function checkGoals(game, gameId) {
     GameAction.create({
       gameId,
       elapsedMs: Date.now() - game.startTime,
+      frameNumber: game.frameCount,
       type: "goal",
       userId: null,
       data: {
@@ -308,6 +312,7 @@ function checkGoals(game, gameId) {
     GameAction.create({
       gameId,
       elapsedMs: Date.now() - game.startTime,
+      frameNumber: game.frameCount,
       type: "goal",
       userId: null,
       data: {
@@ -399,6 +404,7 @@ function pauseGameForCelebration(game, gameId) {
       await GameAction.create({
         gameId,
         elapsedMs: Date.now() - game.startTime,
+        frameNumber: game.frameCount,
         type: "ball_reset",
         userId: null,
         data: {
@@ -609,6 +615,7 @@ async function endGame(game, gameId) {
     await GameAction.create({
       gameId,
       elapsedMs: Date.now() - game.startTime,
+      frameNumber: game.frameCount,
       type: "game_ended",
       userId: null, // No specific user for game end
       data: {
@@ -651,6 +658,7 @@ export async function addNewGame(gameId, initialScores = null) {
 
   games.set(gameId, {
     ...gameDefaults,
+    frameCount: 0,
     gameFunction: setInterval(() => gameFunction(gameId), 1000 / 60),
     updateFunction: setInterval(() => updateFunction(gameId), 1000 / 30),
     spectatorFunction: setInterval(
@@ -665,6 +673,7 @@ export async function addNewGame(gameId, initialScores = null) {
     await GameAction.create({
       gameId,
       elapsedMs: 0,
+      frameNumber: 0,
       type: "game_start",
       userId: null,
       data: gameDefaults,

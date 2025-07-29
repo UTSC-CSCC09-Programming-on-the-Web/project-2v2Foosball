@@ -167,6 +167,7 @@ export function registerGameListeners(io, socket) {
         await GameAction.create({
           gameId,
           elapsedMs: Date.now() - game.startTime,
+          frameNumber: game.frameCount,
           type: type === "keydown" ? "player_input_start" : "player_input_end",
           data: {
             key,

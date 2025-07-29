@@ -54,7 +54,6 @@ export class ReplayFieldComponent
   }
 
   ngOnDestroy(): void {
-    // No animation frame to cancel since we only draw on state changes
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -67,7 +66,6 @@ export class ReplayFieldComponent
     // Set canvas size based on config
     this.canvas.width = this.config.fieldWidth;
     this.canvas.height = this.config.fieldHeight;
-    this.ctx.imageSmoothingEnabled = true;
   }
 
   private draw(): void {

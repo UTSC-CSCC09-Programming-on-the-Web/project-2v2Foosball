@@ -49,7 +49,7 @@ export function registerReplayListeners(io, socket) {
     try {
       actions = await GameAction.findAll({
         where: { gameId },
-        order: [["elapsedMs", "ASC"]],
+        order: [["frameNumber", "ASC"]],
       });
     } catch (err) {
       socket.emit("replay.error", "Could not fetch actions");

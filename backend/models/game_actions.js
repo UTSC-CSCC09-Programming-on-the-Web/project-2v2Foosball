@@ -17,6 +17,12 @@ export const GameAction = sequelize.define(
     elapsedMs: {
       type: DataTypes.INTEGER,
       allowNull: false, // milliseconds from game start
+      defaultValue: 0,
+    },
+    frameNumber: {
+      type: DataTypes.INTEGER,
+      allowNull: false, // frame number for the action
+      defaultValue: 0,
     },
     type: {
       type: DataTypes.ENUM,
@@ -40,8 +46,12 @@ export const GameAction = sequelize.define(
     },
   },
   {
-    indexes: [{ fields: ["gameId"] }, { fields: ["elapsedMs"] }],
-  },
+    indexes: [
+      { fields: ["gameId"] },
+      { fields: ["elapsedMs"] },
+      { fields: ["frameNumber"] },
+    ],
+  }
 );
 
 Game.hasMany(GameAction, {
