@@ -23,14 +23,14 @@ export class ReplayService {
   // Fetch paginated game history for a user
   getGameHistory(userId: string, page: number = 0): Observable<GameData[]> {
     return this.http.get<GameData[]>(
-      `${environment.apiUrl}/replays/${userId}?page=${page}`
+      `${environment.apiUrl}/replays/${userId}?page=${page}`,
     );
   }
 
   // Fetch actions for a specific gameId
   getGameActions(gameId: string): Observable<ReplayAction[]> {
     return this.http.get<ReplayAction[]>(
-      `${environment.apiUrl}/replays/actions/${gameId}`
+      `${environment.apiUrl}/replays/actions/${gameId}`,
     );
   }
 

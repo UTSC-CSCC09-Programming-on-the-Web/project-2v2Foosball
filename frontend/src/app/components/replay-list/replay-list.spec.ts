@@ -8,9 +8,8 @@ describe('ReplayList', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ReplayList]
-    })
-    .compileComponents();
+      imports: [ReplayList],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ReplayList);
     component = fixture.componentInstance;

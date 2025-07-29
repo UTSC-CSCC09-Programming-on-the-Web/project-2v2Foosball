@@ -269,7 +269,7 @@ function checkGoals(game, gameId) {
     updateGameScoreInDatabase(
       gameId,
       game.state.team1.score,
-      game.state.team2.score
+      game.state.team2.score,
     );
 
     GameAction.create({
@@ -302,7 +302,7 @@ function checkGoals(game, gameId) {
     updateGameScoreInDatabase(
       gameId,
       game.state.team1.score,
-      game.state.team2.score
+      game.state.team2.score,
     );
 
     GameAction.create({
@@ -408,7 +408,7 @@ function pauseGameForCelebration(game, gameId) {
     } catch (error) {
       console.error(
         `Error recording ball randomization for game ${gameId}:`,
-        error
+        error,
       );
     }
 
@@ -460,23 +460,47 @@ function resetBall(game, vx = 0, vy = 0) {
 }
 
 function resetRodsToDefault(game) {
-  // Reset team1 rods to default positions
+  // Reset team1 rods to default positions (1-3-1-3 formation)
+  // Rod 1 (1 figure)
   game.state.team1.rods[0].vy = 0;
   game.state.team1.rods[0].figures[0].y = 250;
 
+  // Rod 2 (3 figures)
   game.state.team1.rods[1].vy = 0;
-  game.state.team1.rods[1].figures[0].y = 100;
+  game.state.team1.rods[1].figures[0].y = 125;
   game.state.team1.rods[1].figures[1].y = 250;
-  game.state.team1.rods[1].figures[2].y = 400;
+  game.state.team1.rods[1].figures[2].y = 375;
 
-  // Reset team2 rods to default positions
+  // Rod 3 (1 figure)
+  game.state.team1.rods[2].vy = 0;
+  game.state.team1.rods[2].figures[0].y = 250;
+
+  // Rod 4 (3 figures)
+  game.state.team1.rods[3].vy = 0;
+  game.state.team1.rods[3].figures[0].y = 125;
+  game.state.team1.rods[3].figures[1].y = 250;
+  game.state.team1.rods[3].figures[2].y = 375;
+
+  // Reset team2 rods to default positions (3-1-3-1 formation)
+  // Rod 1 (3 figures)
   game.state.team2.rods[0].vy = 0;
-  game.state.team2.rods[0].figures[0].y = 100;
+  game.state.team2.rods[0].figures[0].y = 125;
   game.state.team2.rods[0].figures[1].y = 250;
-  game.state.team2.rods[0].figures[2].y = 400;
+  game.state.team2.rods[0].figures[2].y = 375;
 
+  // Rod 2 (1 figure)
   game.state.team2.rods[1].vy = 0;
   game.state.team2.rods[1].figures[0].y = 250;
+
+  // Rod 3 (3 figures)
+  game.state.team2.rods[2].vy = 0;
+  game.state.team2.rods[2].figures[0].y = 125;
+  game.state.team2.rods[2].figures[1].y = 250;
+  game.state.team2.rods[2].figures[2].y = 375;
+
+  // Rod 4 (1 figure)
+  game.state.team2.rods[3].vy = 0;
+  game.state.team2.rods[3].figures[0].y = 250;
 }
 
 async function endGame(game, gameId) {
@@ -546,7 +570,7 @@ async function endGame(game, gameId) {
         where: {
           gameId: gameId,
         },
-      }
+      },
     );
   } catch (error) {
     console.error(`Error updating game status for game ${gameId}:`, error);
@@ -631,7 +655,7 @@ export async function addNewGame(gameId, initialScores = null) {
     updateFunction: setInterval(() => updateFunction(gameId), 1000 / 30),
     spectatorFunction: setInterval(
       () => spectatorUpdateFunction(gameId),
-      spectatorService.SNAPSHOT_INTERVAL
+      spectatorService.SNAPSHOT_INTERVAL,
     ),
     startTime: Date.now(),
   });
@@ -648,7 +672,7 @@ export async function addNewGame(gameId, initialScores = null) {
   } catch (error) {
     console.error(
       `Error recording game start action for game ${gameId}:`,
-      error
+      error,
     );
   }
 }
@@ -691,18 +715,44 @@ export const GAME_DEFAULTS = {
           ],
         },
         {
-          x: 300,
+          x: 200,
           vy: 0,
           figureCount: 3,
           figures: [
             {
-              y: 100,
+              y: 125,
             },
             {
               y: 250,
             },
             {
-              y: 400,
+              y: 375,
+            },
+          ],
+        },
+        {
+          x: 300,
+          vy: 0,
+          figureCount: 1,
+          figures: [
+            {
+              y: 250,
+            },
+          ],
+        },
+        {
+          x: 400,
+          vy: 0,
+          figureCount: 3,
+          figures: [
+            {
+              y: 125,
+            },
+            {
+              y: 250,
+            },
+            {
+              y: 375,
             },
           ],
         },
@@ -712,18 +762,44 @@ export const GAME_DEFAULTS = {
       score: 0,
       rods: [
         {
-          x: 900,
+          x: 800,
           vy: 0,
           figureCount: 3,
           figures: [
             {
-              y: 100,
+              y: 125,
             },
             {
               y: 250,
             },
             {
-              y: 400,
+              y: 375,
+            },
+          ],
+        },
+        {
+          x: 900,
+          vy: 0,
+          figureCount: 1,
+          figures: [
+            {
+              y: 250,
+            },
+          ],
+        },
+        {
+          x: 1000,
+          vy: 0,
+          figureCount: 3,
+          figures: [
+            {
+              y: 125,
+            },
+            {
+              y: 250,
+            },
+            {
+              y: 375,
             },
           ],
         },
@@ -754,12 +830,12 @@ async function updateGameScoreInDatabase(gameId, team1Score, team2Score) {
         where: {
           gameId: gameId,
         },
-      }
+      },
     );
   } catch (error) {
     console.error(
       `Error updating game score in database for game ${gameId}:`,
-      error
+      error,
     );
   }
 }

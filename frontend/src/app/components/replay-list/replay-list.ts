@@ -21,7 +21,7 @@ export class ReplayComponent implements OnInit, OnDestroy {
   constructor(
     private replayService: ReplayService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {

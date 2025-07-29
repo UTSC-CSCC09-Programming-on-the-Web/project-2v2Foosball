@@ -125,6 +125,16 @@
   color: #1565c0;
 }
 
+.mock-login-btn.mock-user-3 {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.mock-login-btn.mock-user-4 {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
 .mock-login-section {
   margin-top: 24px;
 }
@@ -156,6 +166,14 @@
 
 .mock-login-btn.mock-user-2:hover:not(:disabled) {
   background-color: #bbdefb;
+}
+
+.mock-login-btn.mock-user-3:hover:not(:disabled) {
+  background-color: #c8e6c9;
+}
+
+.mock-login-btn.mock-user-4:hover:not(:disabled) {
+  background-color: #ffe0b2;
 }
 
 .mock-login-btn:active:not(:disabled) {

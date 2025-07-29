@@ -34,7 +34,7 @@ export class Index implements OnInit, OnDestroy {
     private authService: AuthService,
     private api: Api,
     private socketService: SocketService,
-    private router: Router
+    private router: Router,
   ) {
     authService.getUser().subscribe((user) => {
       this.user = user;

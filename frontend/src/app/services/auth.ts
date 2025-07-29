@@ -24,7 +24,15 @@ export class AuthService {
   }
 
   mockLogin(userNumber: number = 1): Observable<any> {
-    const endpoint = userNumber === 2 ? 'mock2' : 'mock';
+    let endpoint = 'mock';
+    if (userNumber === 2) {
+      endpoint = 'mock2';
+    } else if (userNumber === 3) {
+      endpoint = 'mock3';
+    } else if (userNumber === 4) {
+      endpoint = 'mock4';
+    }
+
     return this.http.post(
       `${environment.apiUrl}/auth/${endpoint}`,
       {},
