@@ -94,6 +94,7 @@ export class ReplayPage implements OnInit, OnDestroy {
     this.replayStartedSub?.unsubscribe();
     this.replayStateSub?.unsubscribe();
     this.replayStoppedSub?.unsubscribe();
+    this.socketService.emit('replay.stop');
   }
 
   private onError(error: string) {

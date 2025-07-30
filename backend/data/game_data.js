@@ -269,13 +269,14 @@ export function checkGoals(game, gameId) {
     game.state.goalJustScored = true;
 
     // Update database
-    updateGameScoreInDatabase(
-      gameId,
-      game.state.team1.score,
-      game.state.team2.score
-    );
 
     if (game.status !== "replaying") {
+      updateGameScoreInDatabase(
+        gameId,
+        game.state.team1.score,
+        game.state.team2.score
+      );
+
       GameAction.create({
         gameId,
         elapsedMs: Date.now() - game.startTime,
@@ -305,14 +306,13 @@ export function checkGoals(game, gameId) {
     goalScored = true;
     game.state.goalJustScored = true;
 
-    // Update database
-    updateGameScoreInDatabase(
-      gameId,
-      game.state.team1.score,
-      game.state.team2.score
-    );
-
     if (game.status !== "replaying") {
+      // Update database
+      updateGameScoreInDatabase(
+        gameId,
+        game.state.team1.score,
+        game.state.team2.score
+      );
       GameAction.create({
         gameId,
         elapsedMs: Date.now() - game.startTime,
@@ -329,7 +329,9 @@ export function checkGoals(game, gameId) {
     // Check if game should end
     if (game.state.team1.score >= game.config.maxScore) {
       // Game over - Team 1 wins
-      endGame(game, gameId);
+      if (game.status !== "replaying") {
+        endGame(game, gameId);
+      }
       return; // Don't continue with celebration, game is over
     } else {
       // Pause the game for celebration
@@ -339,7 +341,7 @@ export function checkGoals(game, gameId) {
   }
 
   // If a goal was scored and game didn't end, emit the updated game state
-  if (goalScored) {
+  if (goalScored && game.status !== "replaying") {
     // Emit to players
     io.to(`game-${gameId}`).emit("game.updated", {
       eventType: "goal_scored",
@@ -518,6 +520,7 @@ function resetRodsToDefault(game) {
 }
 
 export async function endGame(game, gameId) {
+  if (game.status === "replaying") return;
   // Determine the winner
   const winner = game.state.team1.score > game.state.team2.score ? 1 : 2;
 

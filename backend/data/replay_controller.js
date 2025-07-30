@@ -89,7 +89,7 @@ export class ReplayController {
     updateRods(this.game, 2);
 
     // Emit the updated state to the replay room
-    this.io.to(`replay-${this.gameId}`).emit("replay.state", {
+    this.socket.emit("replay.state", {
       ball: this.game.state.ball,
       rods: {
         team1: this.game.state.team1.rods,
@@ -147,15 +147,18 @@ export class ReplayController {
         }
         break;
       case "game_ended":
-        this.isPaused = true;
-        this.socket.emit("replay.paused");
-        // endGame(this.game, this.gameId);
-        clearTimeout(this.next);
-        // Optionally handle end state
+        this.endReplay();
         break;
       default:
         break;
     }
+  }
+
+  endReplay() {
+    console.log("Ending replay for game:", this.gameId);
+    this.isPaused = true;
+    this.socket.emit("replay.stopped");
+    clearTimeout(this.next);
   }
 
   // Pause the replay
