@@ -165,21 +165,25 @@ export function updateRods(game, team) {
 
 export function updateGamePhysics(game) {
   const ball = game.state.ball;
+
   // Update ball position based on its velocity
   ball.x += ball.vx;
   ball.y += ball.vy;
 
-  // // Friction
-  // ball.vx *= 0.99;
-  // ball.vy *= 0.99;
+  // Friction
+  ball.vx *= 0.99;
+  ball.vy *= 0.99;
 
-  // // Stop micro-movements
-  // if (Math.abs(ball.vx) < 0.05) {
-  //   ball.vx = 0;
-  // }
-  // if (Math.abs(ball.vy) < 0.05) {
-  //   ball.vy = 0;
-  // }
+  // Ensure ball speed is above a minimum threshold to prevent it from getting stuck
+  const minSpeed = 5;
+  const speed = Math.sqrt(ball.vx ** 2 + ball.vy ** 2);
+
+  if (speed > 0 && speed < minSpeed) {
+    const scale = minSpeed / speed;
+    ball.vx *= scale;
+    ball.vy *= scale;
+  } 
+
 }
 
 export function checkBounds(game, gameId) {
@@ -208,47 +212,40 @@ export function checkBounds(game, gameId) {
 
 export function checkCollisions(game, gameId) {
   const ball = game.state.ball;
-  // If the ball is on the left side of the field, check team1 rods
+  const radiusSum = game.config.ballRadius + game.config.figureRadius;
+  const impactMultiplier = 0.8; // Rod influence on ball
+
+  const handleRodCollision = (rod) => {
+    rod.figures.forEach((figure) => {
+      const dx = ball.x - rod.x;
+      const dy = ball.y - figure.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < radiusSum) {
+        // Normalize collision normal
+        const nx = dx / distance;
+        const ny = dy / distance;
+
+        // Reflect ball velocity over the normal
+        const dot = ball.vx * nx + ball.vy * ny;
+        ball.vx -= 2 * dot * nx;
+        ball.vy -= 2 * dot * ny;
+
+        const rodVelocity = rod.vy || 0;
+        ball.vy += rodVelocity * impactMultiplier;
+
+        // Resolve overlap
+        const overlap = radiusSum - distance;
+        ball.x += nx * overlap;
+        ball.y += ny * overlap;
+      }
+    });
+  };
+
   if (ball.x < game.config.fieldWidth / 2) {
-    game.state.team1.rods.forEach((rod) => {
-      rod.figures.forEach((figure) => {
-        const dx = ball.x - rod.x;
-        const dy = ball.y - figure.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < game.config.ballRadius + game.config.figureRadius) {
-          // Ball hits the figure (circle-circle collision)
-          const angle = Math.atan2(dy, dx);
-          const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
-          ball.vx = Math.abs(speed * Math.cos(angle));
-          ball.vy = speed * Math.sin(angle);
-          // Move ball out of collision
-          const overlap =
-            game.config.ballRadius + game.config.figureRadius - distance;
-          ball.x += overlap * Math.cos(angle);
-          ball.y += overlap * Math.sin(angle);
-        }
-      });
-    });
+    game.state.team1.rods.forEach(handleRodCollision);
   } else {
-    game.state.team2.rods.forEach((rod) => {
-      rod.figures.forEach((figure) => {
-        const dx = ball.x - rod.x;
-        const dy = ball.y - figure.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < game.config.ballRadius + game.config.figureRadius) {
-          // Ball hits the figure (circle-circle collision)
-          const angle = Math.atan2(dy, dx);
-          const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
-          ball.vx = -Math.abs(speed * Math.cos(angle));
-          ball.vy = speed * Math.sin(angle);
-          // Move ball out of collision
-          const overlap =
-            game.config.ballRadius + game.config.figureRadius - distance;
-          ball.x += overlap * Math.cos(angle);
-          ball.y += overlap * Math.sin(angle);
-        }
-      });
-    });
+    game.state.team2.rods.forEach(handleRodCollision);
   }
 }
 
