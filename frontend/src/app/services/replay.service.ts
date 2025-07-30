@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { GameData } from '../types/game';
 import { ReplayAction } from '../types/replay';
+import { SocketService } from './socket.service';
 
 export interface Replay {
   gameId: string;
@@ -18,25 +19,35 @@ export interface Replay {
 export class ReplayService {
   private currentGameId = new BehaviorSubject<string | null>(null);
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private socketService: SocketService,
+  ) {}
 
   // Fetch paginated game history for a user
   getGameHistory(userId: string, page: number = 0): Observable<GameData[]> {
     return this.http.get<GameData[]>(
-      `${environment.apiUrl}/replays/${userId}?page=${page}`
+      `${environment.apiUrl}/replays/${userId}?page=${page}`,
+      {
+        withCredentials: true,
+      },
     );
   }
 
   // Fetch actions for a specific gameId
   getGameActions(gameId: string): Observable<ReplayAction[]> {
     return this.http.get<ReplayAction[]>(
-      `${environment.apiUrl}/replays/actions/${gameId}`
+      `${environment.apiUrl}/replays/actions/${gameId}`,
+      {
+        withCredentials: true,
+      },
     );
   }
 
   // Set the current game being spectated
   setCurrentGame(gameId: string): void {
     this.currentGameId.next(gameId);
+    this.socketService.emit('replay.start', gameId);
   }
 
   // Get the current game being spectated
@@ -46,5 +57,22 @@ export class ReplayService {
 
   clearCurrentGame(): void {
     this.currentGameId.next(null);
+  }
+
+  pauseReplay(): void {
+    this.socketService.emit('replay.pause', this.currentGameId.value);
+  }
+
+  resumeReplay(): void {
+    this.socketService.emit('replay.resume', this.currentGameId.value);
+  }
+
+  stopReplay(): void {
+    this.socketService.emit('replay.stop', this.currentGameId.value);
+    this.clearCurrentGame();
+  }
+
+  rewindReplay(): void {
+    this.socketService.emit('replay.rewind', this.currentGameId.value);
   }
 }

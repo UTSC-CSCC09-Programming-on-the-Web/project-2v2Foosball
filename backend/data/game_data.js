@@ -21,6 +21,8 @@ function gameFunction(gameId) {
     return;
   }
 
+  game.frameCount++;
+
   updateGamePhysics(game);
   checkBounds(game, gameId);
   checkCollisions(game, gameId);
@@ -83,6 +85,29 @@ function spectatorUpdateFunction(gameId) {
   }
 }
 
+async function replayUpdateFunction(gameId) {
+  const game = games.get(gameId);
+
+  if (!game) {
+    return;
+  }
+
+  // Update the game state
+  const stateCopy = { ...game.state };
+  stateCopy.pauseTimer = null; // Avoid circular reference
+
+  await GameAction.create({
+    gameId,
+    elapsedMs: Date.now() - game.startTime,
+    frameNumber: game.frameCount,
+    type: "game_snapshot",
+    data: {
+      state: JSON.parse(JSON.stringify(stateCopy)),
+      config: JSON.parse(JSON.stringify(game.config)),
+    },
+  });
+}
+
 function updateFunction(gameId) {
   const game = games.get(gameId);
   if (!game) {
@@ -102,11 +127,12 @@ function updateFunction(gameId) {
         score: game.state.team2.score,
         rods: game.state.team2.rods,
       },
+      frameCount: game.frameCount || 0,
     },
   });
 }
 
-function updateRods(game, team) {
+export function updateRods(game, team) {
   game.state[`team${team}`].rods.forEach((rod) => {
     const lambda = (figure) => {
       figure.y += rod.vy;
@@ -137,7 +163,7 @@ function updateRods(game, team) {
   });
 }
 
-function updateGamePhysics(game) {
+export function updateGamePhysics(game) {
   const ball = game.state.ball;
   // Update ball position based on its velocity
   ball.x += ball.vx;
@@ -156,7 +182,7 @@ function updateGamePhysics(game) {
   // }
 }
 
-function checkBounds(game, gameId) {
+export function checkBounds(game, gameId) {
   const ball = game.state.ball;
   const { fieldWidth, fieldHeight, ballRadius } = game.config;
 
@@ -180,7 +206,7 @@ function checkBounds(game, gameId) {
   ball.vy = yCheck.vel;
 }
 
-function checkCollisions(game, gameId) {
+export function checkCollisions(game, gameId) {
   const ball = game.state.ball;
   // If the ball is on the left side of the field, check team1 rods
   if (ball.x < game.config.fieldWidth / 2) {
@@ -226,7 +252,7 @@ function checkCollisions(game, gameId) {
   }
 }
 
-function checkGoals(game, gameId) {
+export function checkGoals(game, gameId) {
   const ball = game.state.ball;
   const { fieldWidth, fieldHeight, goalWidth, goalHeight, ballRadius } =
     game.config;
@@ -266,22 +292,26 @@ function checkGoals(game, gameId) {
     game.state.goalJustScored = true;
 
     // Update database
-    updateGameScoreInDatabase(
-      gameId,
-      game.state.team1.score,
-      game.state.team2.score
-    );
 
-    GameAction.create({
-      gameId,
-      elapsedMs: Date.now() - game.startTime,
-      type: "goal",
-      userId: null,
-      data: {
-        score1: game.state.team1.score,
-        score2: game.state.team2.score,
-      },
-    });
+    if (game.status !== "replaying") {
+      updateGameScoreInDatabase(
+        gameId,
+        game.state.team1.score,
+        game.state.team2.score,
+      );
+
+      GameAction.create({
+        gameId,
+        elapsedMs: Date.now() - game.startTime,
+        frameNumber: game.frameCount,
+        type: "goal",
+        userId: null,
+        data: {
+          score1: game.state.team1.score,
+          score2: game.state.team2.score,
+        },
+      });
+    }
 
     // Check if game should end
     if (game.state.team2.score >= game.config.maxScore) {
@@ -290,7 +320,8 @@ function checkGoals(game, gameId) {
       return; // Don't continue with celebration, game is over
     } else {
       // Pause the game for celebration
-      pauseGameForCelebration(game, gameId);
+      if (game.status === "replaying") game.state.isPaused = true;
+      else pauseGameForCelebration(game, gameId);
     }
   } else if (ballInRightGoal) {
     // Ball is in right goal - Team 1 scores
@@ -298,37 +329,42 @@ function checkGoals(game, gameId) {
     goalScored = true;
     game.state.goalJustScored = true;
 
-    // Update database
-    updateGameScoreInDatabase(
-      gameId,
-      game.state.team1.score,
-      game.state.team2.score
-    );
-
-    GameAction.create({
-      gameId,
-      elapsedMs: Date.now() - game.startTime,
-      type: "goal",
-      userId: null,
-      data: {
-        score1: game.state.team1.score,
-        score2: game.state.team2.score,
-      },
-    });
+    if (game.status !== "replaying") {
+      // Update database
+      updateGameScoreInDatabase(
+        gameId,
+        game.state.team1.score,
+        game.state.team2.score,
+      );
+      GameAction.create({
+        gameId,
+        elapsedMs: Date.now() - game.startTime,
+        frameNumber: game.frameCount,
+        type: "goal",
+        userId: null,
+        data: {
+          score1: game.state.team1.score,
+          score2: game.state.team2.score,
+        },
+      });
+    }
 
     // Check if game should end
     if (game.state.team1.score >= game.config.maxScore) {
       // Game over - Team 1 wins
-      endGame(game, gameId);
+      if (game.status !== "replaying") {
+        endGame(game, gameId);
+      }
       return; // Don't continue with celebration, game is over
     } else {
       // Pause the game for celebration
-      pauseGameForCelebration(game, gameId);
+      if (game.status === "replaying") game.state.isPaused = true;
+      else pauseGameForCelebration(game, gameId);
     }
   }
 
   // If a goal was scored and game didn't end, emit the updated game state
-  if (goalScored) {
+  if (goalScored && game.status !== "replaying") {
     // Emit to players
     io.to(`game-${gameId}`).emit("game.updated", {
       eventType: "goal_scored",
@@ -350,6 +386,7 @@ function checkGoals(game, gameId) {
 function pauseGameForCelebration(game, gameId) {
   // Pause the game
   game.state.isPaused = true;
+  console.log(`Game ${gameId} paused for celebration after goal.`);
 
   // Clear any existing pause timer
   if (game.state.pauseTimer) {
@@ -396,19 +433,21 @@ function pauseGameForCelebration(game, gameId) {
 
     // Store the ball randomization event for replay
     try {
-      await GameAction.create({
-        gameId,
-        elapsedMs: Date.now() - game.startTime,
-        type: "ball_reset",
-        userId: null,
-        data: {
-          ball: { ...game.state.ball },
-        },
-      });
+      if (game.status !== "replaying")
+        await GameAction.create({
+          gameId,
+          elapsedMs: Date.now() - game.startTime,
+          frameNumber: game.frameCount,
+          type: "ball_reset",
+          userId: null,
+          data: {
+            ball: { ...game.state.ball },
+          },
+        });
     } catch (error) {
       console.error(
         `Error recording ball randomization for game ${gameId}:`,
-        error
+        error,
       );
     }
 
@@ -460,26 +499,51 @@ function resetBall(game, vx = 0, vy = 0) {
 }
 
 function resetRodsToDefault(game) {
-  // Reset team1 rods to default positions
+  // Reset team1 rods to default positions (1-3-1-3 formation)
+  // Rod 1 (1 figure)
   game.state.team1.rods[0].vy = 0;
   game.state.team1.rods[0].figures[0].y = 250;
 
+  // Rod 2 (3 figures)
   game.state.team1.rods[1].vy = 0;
-  game.state.team1.rods[1].figures[0].y = 100;
+  game.state.team1.rods[1].figures[0].y = 125;
   game.state.team1.rods[1].figures[1].y = 250;
-  game.state.team1.rods[1].figures[2].y = 400;
+  game.state.team1.rods[1].figures[2].y = 375;
 
-  // Reset team2 rods to default positions
+  // Rod 3 (1 figure)
+  game.state.team1.rods[2].vy = 0;
+  game.state.team1.rods[2].figures[0].y = 250;
+
+  // Rod 4 (3 figures)
+  game.state.team1.rods[3].vy = 0;
+  game.state.team1.rods[3].figures[0].y = 125;
+  game.state.team1.rods[3].figures[1].y = 250;
+  game.state.team1.rods[3].figures[2].y = 375;
+
+  // Reset team2 rods to default positions (3-1-3-1 formation)
+  // Rod 1 (3 figures)
   game.state.team2.rods[0].vy = 0;
-  game.state.team2.rods[0].figures[0].y = 100;
+  game.state.team2.rods[0].figures[0].y = 125;
   game.state.team2.rods[0].figures[1].y = 250;
-  game.state.team2.rods[0].figures[2].y = 400;
+  game.state.team2.rods[0].figures[2].y = 375;
 
+  // Rod 2 (1 figure)
   game.state.team2.rods[1].vy = 0;
   game.state.team2.rods[1].figures[0].y = 250;
+
+  // Rod 3 (3 figures)
+  game.state.team2.rods[2].vy = 0;
+  game.state.team2.rods[2].figures[0].y = 125;
+  game.state.team2.rods[2].figures[1].y = 250;
+  game.state.team2.rods[2].figures[2].y = 375;
+
+  // Rod 4 (1 figure)
+  game.state.team2.rods[3].vy = 0;
+  game.state.team2.rods[3].figures[0].y = 250;
 }
 
-async function endGame(game, gameId) {
+export async function endGame(game, gameId) {
+  if (game.status === "replaying") return;
   // Determine the winner
   const winner = game.state.team1.score > game.state.team2.score ? 1 : 2;
 
@@ -546,7 +610,7 @@ async function endGame(game, gameId) {
         where: {
           gameId: gameId,
         },
-      }
+      },
     );
   } catch (error) {
     console.error(`Error updating game status for game ${gameId}:`, error);
@@ -561,6 +625,9 @@ async function endGame(game, gameId) {
   }
   if (game.state.pauseTimer) {
     clearTimeout(game.state.pauseTimer);
+  }
+  if (game.replayFunction) {
+    clearInterval(game.replayFunction);
   }
 
   // Immediately remove players from this game to prevent new game creation issues
@@ -582,19 +649,21 @@ async function endGame(game, gameId) {
 
   // Game end action logging
   try {
-    await GameAction.create({
-      gameId,
-      elapsedMs: Date.now() - game.startTime,
-      type: "game_ended",
-      userId: null, // No specific user for game end
-      data: {
-        winner: winner,
-        finalScore: {
-          team1: game.state.team1.score,
-          team2: game.state.team2.score,
+    if (game.status !== "replaying")
+      await GameAction.create({
+        gameId,
+        elapsedMs: Date.now() - game.startTime,
+        frameNumber: game.frameCount,
+        type: "game_ended",
+        userId: null, // No specific user for game end
+        data: {
+          winner: winner,
+          finalScore: {
+            team1: game.state.team1.score,
+            team2: game.state.team2.score,
+          },
         },
-      },
-    });
+      });
   } catch (error) {
     console.error(`Error recording game end action for game ${gameId}:`, error);
   }
@@ -625,22 +694,30 @@ export async function addNewGame(gameId, initialScores = null) {
     gameDefaults.state.team2.score = initialScores.team2 || 0;
   }
 
-  games.set(gameId, {
+  const newGame = {
     ...gameDefaults,
+    frameCount: 0,
     gameFunction: setInterval(() => gameFunction(gameId), 1000 / 60),
     updateFunction: setInterval(() => updateFunction(gameId), 1000 / 30),
     spectatorFunction: setInterval(
       () => spectatorUpdateFunction(gameId),
-      spectatorService.SNAPSHOT_INTERVAL
+      spectatorService.SNAPSHOT_INTERVAL,
     ),
+    replayFunction: setInterval(() => replayUpdateFunction(gameId), 5000),
     startTime: Date.now(),
-  });
+  };
+
+  games.set(gameId, newGame);
+
+  // Explicitly reset rods to default positions to ensure clean start
+  resetRodsToDefault(newGame);
 
   // Record game start action for replay
   try {
     await GameAction.create({
       gameId,
       elapsedMs: 0,
+      frameNumber: 0,
       type: "game_start",
       userId: null,
       data: gameDefaults,
@@ -648,7 +725,7 @@ export async function addNewGame(gameId, initialScores = null) {
   } catch (error) {
     console.error(
       `Error recording game start action for game ${gameId}:`,
-      error
+      error,
     );
   }
 }
@@ -691,18 +768,44 @@ export const GAME_DEFAULTS = {
           ],
         },
         {
-          x: 300,
+          x: 200,
           vy: 0,
           figureCount: 3,
           figures: [
             {
-              y: 100,
+              y: 125,
             },
             {
               y: 250,
             },
             {
-              y: 400,
+              y: 375,
+            },
+          ],
+        },
+        {
+          x: 300,
+          vy: 0,
+          figureCount: 1,
+          figures: [
+            {
+              y: 250,
+            },
+          ],
+        },
+        {
+          x: 400,
+          vy: 0,
+          figureCount: 3,
+          figures: [
+            {
+              y: 125,
+            },
+            {
+              y: 250,
+            },
+            {
+              y: 375,
             },
           ],
         },
@@ -712,18 +815,44 @@ export const GAME_DEFAULTS = {
       score: 0,
       rods: [
         {
-          x: 900,
+          x: 800,
           vy: 0,
           figureCount: 3,
           figures: [
             {
-              y: 100,
+              y: 125,
             },
             {
               y: 250,
             },
             {
-              y: 400,
+              y: 375,
+            },
+          ],
+        },
+        {
+          x: 900,
+          vy: 0,
+          figureCount: 1,
+          figures: [
+            {
+              y: 250,
+            },
+          ],
+        },
+        {
+          x: 1000,
+          vy: 0,
+          figureCount: 3,
+          figures: [
+            {
+              y: 125,
+            },
+            {
+              y: 250,
+            },
+            {
+              y: 375,
             },
           ],
         },
@@ -745,21 +874,28 @@ export const GAME_DEFAULTS = {
 // Function to update game scores in the database
 async function updateGameScoreInDatabase(gameId, team1Score, team2Score) {
   try {
-    await Game.update(
-      {
-        score1: team1Score,
-        score2: team2Score,
+    const game = await Game.findOne({
+      where: {
+        gameId: gameId,
       },
-      {
-        where: {
-          gameId: gameId,
-        },
-      }
-    );
+    });
+
+    if (!game) {
+      console.error(`Game with ID ${gameId} not found in database.`);
+      return;
+    }
+
+    if (game.status === "replaying") {
+      return;
+    }
+
+    game.score1 = team1Score;
+    game.score2 = team2Score;
+    await game.save();
   } catch (error) {
     console.error(
       `Error updating game score in database for game ${gameId}:`,
-      error
+      error,
     );
   }
 }

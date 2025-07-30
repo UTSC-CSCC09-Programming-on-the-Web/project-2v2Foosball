@@ -43,7 +43,8 @@ gameRouter.get("/", isAuth, async (req, res) => {
         },
         meta: {
           team: player.team,
-          activeRod: 1,
+          rodPosition: player.rodPosition,
+          activeRod: player.rodPosition === "front" ? 1 : 3, // Start with first rod of their range
         },
       });
     } else {

@@ -100,7 +100,7 @@ export class SpectatorPage implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private spectatorService: SpectatorService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {

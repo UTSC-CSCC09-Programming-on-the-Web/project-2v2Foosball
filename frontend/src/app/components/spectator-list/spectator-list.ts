@@ -23,7 +23,7 @@ export class SpectatorListComponent implements OnInit, OnDestroy {
   constructor(
     private spectatorService: SpectatorService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -54,7 +54,7 @@ export class SpectatorListComponent implements OnInit, OnDestroy {
         // Update scores and other game data while preserving existing games
         games.forEach((updatedGame) => {
           const existingGame = this.activeGames.find(
-            (g) => g.gameId === updatedGame.gameId
+            (g) => g.gameId === updatedGame.gameId,
           );
           if (existingGame) {
             // Update the scores and other data
@@ -69,7 +69,7 @@ export class SpectatorListComponent implements OnInit, OnDestroy {
 
         // Remove games that no longer exist
         this.activeGames = this.activeGames.filter((game) =>
-          games.some((g) => g.gameId === game.gameId)
+          games.some((g) => g.gameId === game.gameId),
         );
       },
       error: (err) => {

@@ -3,11 +3,12 @@ import { spectatorService } from "../data/spectator.js";
 import { Game } from "../models/game.js";
 import { Player } from "../models/players.js";
 import { User } from "../models/users.js";
+import { isAuth } from "../middlewares/auth.js";
 
 export const spectatorRouter = Router();
 
 // Get all active games that can be spectated
-spectatorRouter.get("/active-games", async (req, res) => {
+spectatorRouter.get("/active-games", isAuth, async (req, res) => {
   try {
     const activeGames = await Game.findAll({
       where: {

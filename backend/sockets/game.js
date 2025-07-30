@@ -13,8 +13,8 @@ import { addNewGame, games, userToGameMap } from "../data/game_data.js";
 export function registerGameListeners(io, socket) {
   setInterval(async () => {
     // Check if there are enough players in the queue to start a game
-    if (queue.length >= 2) {
-      const players = queue.splice(0, 2); // Take the first two players from the queue
+    if (queue.length >= 4) {
+      const players = queue.splice(0, 4); // Take the first four players from the queue
       io.emit("queue.updated", queue);
 
       // Create a game object
@@ -28,10 +28,17 @@ export function registerGameListeners(io, socket) {
 
       for (const [i, player] of players.entries()) {
         try {
+          // Assign teams and rod positions:
+          // Players 0,1 → Team 1 (rod positions: front=1,2 and back=3,4)
+          // Players 2,3 → Team 2 (rod positions: front=1,2 and back=3,4)
+          const team = i < 2 ? 1 : 2;
+          const rodPosition = i % 2 === 0 ? "front" : "back"; // front controls rods 1-2, back controls rods 3-4
+
           await Player.create({
             userId: player.userId,
             gameId: game.gameId,
-            team: i + 1, // Assign teams 1 and 2
+            team: team,
+            rodPosition: rodPosition,
           });
 
           userToGameMap.set(player.userId, game.gameId);
@@ -61,20 +68,21 @@ export function registerGameListeners(io, socket) {
         } catch (error) {
           console.error(
             `Error creating player ${player.userId} for game ${game.gameId}:`,
-            error
+            error,
           );
           // If there's an error, it might be because the player still has a game association
           // Try to clean up and retry
           await Player.update(
             { gameId: null },
-            { where: { userId: player.userId } }
+            { where: { userId: player.userId } },
           );
 
           // Retry player creation
           await Player.create({
             userId: player.userId,
             gameId: game.gameId,
-            team: i + 1,
+            team: team,
+            rodPosition: rodPosition,
           });
 
           userToGameMap.set(player.userId, game.gameId);
@@ -103,7 +111,7 @@ export function registerGameListeners(io, socket) {
       }
 
       console.log(
-        `Game started with players: ${players.map((p) => p.userId).join(", ")}`
+        `Game started with 4 players: ${players.map((p) => p.userId).join(", ")}`,
       );
     }
   }, 1000);
@@ -124,11 +132,20 @@ export function registerGameListeners(io, socket) {
     });
     const game = games.get(gameId);
 
-    console.log(
-      `Key ${type === "keydown" ? "pressed" : "lifted"} in game ${gameId}: ${key} by user ${userId} on rod ${activeRod}`
-    );
-
     if (gameId && game && player) {
+      // Validate that player can control the requested rod
+      const allowedRods = player.rodPosition === "front" ? [1, 2] : [3, 4];
+      if (!allowedRods.includes(activeRod)) {
+        console.log(
+          `Player ${userId} attempted to control rod ${activeRod} but is only allowed rods ${allowedRods.join(", ")}`,
+        );
+        return; // Ignore invalid rod control attempts
+      }
+
+      console.log(
+        `Key ${type === "keydown" ? "pressed" : "lifted"} in game ${gameId}: ${key} by user ${userId} on rod ${activeRod} (${player.rodPosition} position)`,
+      );
+
       if (type === "keydown") {
         game.state[`team${player.team}`].rods[activeRod - 1].vy =
           key === "w" ? -game.config.rodSpeed : game.config.rodSpeed;
@@ -150,17 +167,19 @@ export function registerGameListeners(io, socket) {
         await GameAction.create({
           gameId,
           elapsedMs: Date.now() - game.startTime,
+          frameNumber: game.frameCount,
           type: type === "keydown" ? "player_input_start" : "player_input_end",
           data: {
             key,
             activeRod,
             team: player.team,
+            rodPosition: player.rodPosition,
           },
         });
       } catch (error) {
         console.error(
           `Error storing game action for user ${userId} in game ${gameId}:`,
-          error
+          error,
         );
       }
     }

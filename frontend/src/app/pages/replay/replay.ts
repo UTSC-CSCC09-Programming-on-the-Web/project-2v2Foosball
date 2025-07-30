@@ -9,6 +9,7 @@ import {
   PlayerRodState,
 } from '../../types/game';
 import { Replay, ReplayService } from '../../services/replay.service';
+import { SocketService } from '../../services/socket.service';
 import { Router } from '@angular/router';
 import {
   BallResetAction,
@@ -16,6 +17,7 @@ import {
   PlayerInputAction,
   ReplayAction,
 } from '../../types/replay';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-replay',
@@ -24,75 +26,24 @@ import {
   styleUrl: './replay.scss',
 })
 export class ReplayPage implements OnInit, OnDestroy {
+  private replayStartedSub?: Subscription;
+  private replayStateSub?: Subscription;
+  private replayStoppedSub?: Subscription;
+  private replayRewindSub?: Subscription;
+  private replayGoalSub?: Subscription;
+  private replayGameEndedSub?: Subscription;
   gameId: string | null = null;
   isConnected = false;
   isLoading = true;
+  isPaused = false;
   error: string | null = null;
 
-  private replayActions: ReplayAction[] = [];
-  private replayStartTime: number = 0;
-  private nextActionIndex: number = 0;
-  private replayDuration: number = 0;
-  private currentReplayTime: number = 0;
-  private animationFrame: any | null = null;
-
-  // TODO: Implement replay controls
-  isPlaying: boolean = true;
-  private replaySpeed: number = 1.0;
-
-  // Goal celebration
-  showGoalCelebration: boolean = false;
-  goalCelebrationTimer: any;
-  score: { team1: number; team2: number } = {
-    team1: 0,
-    team2: 0,
-  };
-  private isFirstScoreUpdate: boolean = true;
-
-  // Game end screen
-  showGameEndScreen: boolean = false;
-  gameWinner: 1 | 2 | null = null;
-  finalScore: { team1: number; team2: number } | null = null;
-
-  // Game state for child components - this will be updated with delayed state
-  ball: BallState = {
-    x: 600,
-    y: 250,
-    vx: -5,
-    vy: 0,
-  };
-
+  // State received from backend
+  ball: BallState = { x: 600, y: 250, vx: 0, vy: 0 };
   rods: { team1: PlayerRodState[]; team2: PlayerRodState[] } = {
-    team1: [
-      {
-        x: 100,
-        vy: 0,
-        figureCount: 1,
-        figures: [{ y: 250 }],
-      },
-      {
-        x: 300,
-        vy: 0,
-        figureCount: 3,
-        figures: [{ y: 100 }, { y: 250 }, { y: 400 }],
-      },
-    ],
-    team2: [
-      {
-        x: 900,
-        vy: 0,
-        figureCount: 3,
-        figures: [{ y: 100 }, { y: 250 }, { y: 400 }],
-      },
-      {
-        x: 1100,
-        vy: 0,
-        figureCount: 1,
-        figures: [{ y: 250 }],
-      },
-    ],
+    team1: [],
+    team2: [],
   };
-
   config: GameConfig = {
     fieldWidth: 1200,
     fieldHeight: 500,
@@ -106,26 +57,73 @@ export class ReplayPage implements OnInit, OnDestroy {
     rodSpeed: 5,
     ballSpeed: 10,
   };
+  score: { team1: number; team2: number } = { team1: 0, team2: 0 };
+  showGameEndScreen: boolean = false;
+  gameWinner: 1 | 2 | null = null;
+  finalScore: { team1: number; team2: number } | null = null;
+  showGoalCelebration: boolean = false;
+  goalCelebrationTimer: any;
 
-  constructor(private replayService: ReplayService, private router: Router) {}
+  constructor(
+    private replayService: ReplayService,
+    private socketService: SocketService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
-    this.replayService.getCurrentGame().subscribe((gameId) => {
-      this.gameId = gameId;
+    this.replayStartedSub = this.socketService
+      .listen('replay.started')
+      .subscribe(() => {
+        this.isLoading = false;
+      });
 
-      if (!this.gameId) {
-        this.onError(
-          'No game selected. Please select a game from the games list.'
-        );
-        return;
-      }
-      this.setupReplay();
-    });
+    // Subscribe to replay.state updates from backend
+    this.replayStateSub = this.socketService
+      .listen<any>('replay.state')
+      .subscribe((state) => {
+        if (state) {
+          this.ball = state.ball;
+          this.rods = state.rods;
+          this.config = state.config;
+          this.score = state.score;
+        }
+      });
+
+    this.replayStoppedSub = this.socketService
+      .listen<any>('replay.stopped')
+      .subscribe(() => {});
+
+    // Subscribe to goal events to trigger celebrations
+    this.replayGoalSub = this.socketService
+      .listen<any>('replay.goal')
+      .subscribe((goalData) => {
+        if (goalData) {
+          this.triggerGoalCelebration();
+        }
+      });
+
+    // Subscribe to game end events to show post-game overlay
+    this.replayGameEndedSub = this.socketService
+      .listen<any>('replay.game_ended')
+      .subscribe((gameEndData) => {
+        if (gameEndData) {
+          this.handleGameEnd(gameEndData);
+        }
+      });
   }
 
   ngOnDestroy(): void {
-    if (this.animationFrame) {
-      cancelAnimationFrame(this.animationFrame);
+    this.replayStartedSub?.unsubscribe();
+    this.replayStateSub?.unsubscribe();
+    this.replayStoppedSub?.unsubscribe();
+    this.replayRewindSub?.unsubscribe();
+    this.replayGoalSub?.unsubscribe();
+    this.replayGameEndedSub?.unsubscribe();
+    this.socketService.emit('replay.stop');
+
+    // Clear goal celebration timer
+    if (this.goalCelebrationTimer) {
+      clearTimeout(this.goalCelebrationTimer);
     }
   }
 
@@ -134,154 +132,19 @@ export class ReplayPage implements OnInit, OnDestroy {
     this.isLoading = false;
   }
 
-  private setupReplay() {
-    // fetch full list of replay actions
-    if (!this.gameId) {
-      this.onError(
-        'No game selected. Please select a game from the games list.'
-      );
-      return;
+  private handleGameEnd(gameEndData: any): void {
+    // Hide any goal celebration
+    this.showGoalCelebration = false;
+    if (this.goalCelebrationTimer) {
+      clearTimeout(this.goalCelebrationTimer);
     }
 
-    this.replayService.getGameActions(this.gameId).subscribe({
-      next: (actions) => {
-        this.replayActions = actions;
-        this.replayDuration = actions[actions.length - 1]?.elapsedMs || 0;
-        this.replayStartTime = performance.now();
-        this.isLoading = false;
-        this.isPlaying = true;
+    // Set up game end screen data
+    this.gameWinner = gameEndData.winner;
+    this.finalScore = gameEndData.finalScore;
 
-        this.startReplayLoop();
-      },
-      error: (error) => {
-        this.onError(error);
-      },
-    });
-  }
-
-  private startReplayLoop() {
-    const replayLoop = () => {
-      if (!this.isPlaying) return;
-
-      const currentRealTime = performance.now();
-      this.currentReplayTime =
-        (currentRealTime - this.replayStartTime) * this.replaySpeed;
-
-      // Process all actions that should have happened by now
-      while (this.nextActionIndex < this.replayActions.length) {
-        const nextAction = this.replayActions[this.nextActionIndex];
-        if (this.currentReplayTime >= nextAction.elapsedMs) {
-          this.processAction(nextAction);
-          this.nextActionIndex++;
-        } else {
-          break;
-        }
-      }
-
-      // Check if replay is finished
-      if (this.nextActionIndex >= this.replayActions.length) {
-        this.isPlaying = false;
-        console.log('Replay finished');
-        return;
-      }
-
-      this.animationFrame = requestAnimationFrame(replayLoop);
-    };
-
-    replayLoop();
-  }
-
-  private processAction(action: ReplayAction) {
-    let data;
-    console.log(
-      `Processing action ${action.actionId} of type ${action.type} at ${action.elapsedMs} ms`
-    );
-
-    switch (action.type) {
-      case 'game_start':
-        data = action.data! as GameInit;
-        this.config = data.config;
-        this.rods = {
-          team1: data.state.team1!.rods!,
-          team2: data.state.team2!.rods!,
-        };
-        this.ball = { ...data.state.ball! };
-        break;
-      case 'player_input_start':
-        data = action.data! as PlayerInputAction;
-        this.updateRodMovement(data, true);
-        break;
-      case 'player_input_end':
-        data = action.data! as PlayerInputAction;
-        this.updateRodMovement(data, false);
-        break;
-      case 'ball_reset':
-        data = action.data! as BallResetAction;
-        this.ball = { ...data.ball };
-        // reset rods too
-        this.rods = {
-          team1: [
-            {
-              x: 100,
-              vy: 0,
-              figureCount: 1,
-              figures: [{ y: 250 }],
-            },
-            {
-              x: 300,
-              vy: 0,
-              figureCount: 3,
-              figures: [{ y: 100 }, { y: 250 }, { y: 400 }],
-            },
-          ],
-          team2: [
-            {
-              x: 900,
-              vy: 0,
-              figureCount: 3,
-              figures: [{ y: 100 }, { y: 250 }, { y: 400 }],
-            },
-            {
-              x: 1100,
-              vy: 0,
-              figureCount: 1,
-              figures: [{ y: 250 }],
-            },
-          ],
-        };
-
-        break;
-      case 'goal':
-        data = action.data! as GoalAction;
-        this.score = {
-          team1: data.score1,
-          team2: data.score2,
-        };
-        break;
-      case 'game_ended':
-        this.showGameEndScreen = true;
-        this.finalScore = this.score;
-        this.gameWinner = this.score.team1 === 5 ? 1 : 2;
-        this.isPlaying = false;
-        break;
-    }
-  }
-
-  private updateRodMovement(action: PlayerInputAction, isStart: boolean) {
-    const team = action.team === 1 ? 'team1' : 'team2';
-    const rodIndex = action.activeRod - 1;
-
-    if (this.rods[team][rodIndex]) {
-      if (isStart) {
-        // Start movement
-        this.rods[team][rodIndex].vy =
-          action.key === 'w' ? -this.config.rodSpeed : this.config.rodSpeed;
-      }
-      // Stop movement
-      else this.rods[team][rodIndex].vy = 0;
-    }
-    // Create new reference to trigger change detection
-    this.rods = { ...this.rods };
+    // Show the game end screen
+    this.showGameEndScreen = true;
   }
 
   triggerGoalCelebration(): void {
@@ -301,5 +164,24 @@ export class ReplayPage implements OnInit, OnDestroy {
 
   goBack(): void {
     this.router.navigate(['/']);
+  }
+
+  pauseReplay(): void {
+    this.isPaused = true;
+    this.replayService.pauseReplay();
+  }
+
+  resumeReplay(): void {
+    this.isPaused = false;
+    this.replayService.resumeReplay();
+  }
+
+  stopReplay(): void {
+    this.replayService.stopReplay();
+    this.router.navigate(['/']);
+  }
+
+  rewindReplay(): void {
+    this.replayService.rewindReplay();
   }
 }
