@@ -29,6 +29,7 @@ export class ReplayPage implements OnInit, OnDestroy {
   private replayStartedSub?: Subscription;
   private replayStateSub?: Subscription;
   private replayStoppedSub?: Subscription;
+  private replayGoalSub?: Subscription;
   gameId: string | null = null;
   isConnected = false;
   isLoading = true;
@@ -89,13 +90,28 @@ export class ReplayPage implements OnInit, OnDestroy {
     this.replayStoppedSub = this.socketService
       .listen<any>('replay.stopped')
       .subscribe(() => {});
+
+    // Subscribe to goal events to trigger celebrations
+    this.replayGoalSub = this.socketService
+      .listen<any>('replay.goal')
+      .subscribe((goalData) => {
+        if (goalData) {
+          this.triggerGoalCelebration();
+        }
+      });
   }
 
   ngOnDestroy(): void {
     this.replayStartedSub?.unsubscribe();
     this.replayStateSub?.unsubscribe();
     this.replayStoppedSub?.unsubscribe();
+    this.replayGoalSub?.unsubscribe();
     this.socketService.emit('replay.stop');
+
+    // Clear goal celebration timer
+    if (this.goalCelebrationTimer) {
+      clearTimeout(this.goalCelebrationTimer);
+    }
   }
 
   private onError(error: string) {
