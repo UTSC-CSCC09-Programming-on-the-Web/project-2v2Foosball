@@ -144,10 +144,10 @@ export class ReplayController {
               // Double check we're not still celebrating
               this.game.state.ball = { ...data.ball };
               this.game.state.team1.rods = JSON.parse(
-                JSON.stringify(GAME_DEFAULTS.state.team1.rods),
+                JSON.stringify(GAME_DEFAULTS.state.team1.rods)
               );
               this.game.state.team2.rods = JSON.parse(
-                JSON.stringify(GAME_DEFAULTS.state.team2.rods),
+                JSON.stringify(GAME_DEFAULTS.state.team2.rods)
               );
             }
           }, 3100); // Slightly after celebration ends
@@ -156,10 +156,10 @@ export class ReplayController {
           this.isPaused = false;
           this.game.state.ball = { ...data.ball };
           this.game.state.team1.rods = JSON.parse(
-            JSON.stringify(GAME_DEFAULTS.state.team1.rods),
+            JSON.stringify(GAME_DEFAULTS.state.team1.rods)
           );
           this.game.state.team2.rods = JSON.parse(
-            JSON.stringify(GAME_DEFAULTS.state.team2.rods),
+            JSON.stringify(GAME_DEFAULTS.state.team2.rods)
           );
         }
         break;
@@ -258,11 +258,12 @@ export class ReplayController {
   async _goToLastSnapshotInterval(frameNumber) {
     // Get the last action before the target frame
     const lastAction = await GameAction.findOne({
-      where: {        
+      where: {
         gameId: this.gameId,
         frameNumber: {
           [Op.lte]: frameNumber,
         },
+        type: "game_snapshot",
       },
       order: [["frameNumber", "DESC"]],
     });
@@ -275,7 +276,11 @@ export class ReplayController {
     // Set the game state to the last snapshot
     this.currentFrame = lastAction.frameNumber;
 
-    console.log("Interpolating game state to frame:", frameNumber, lastAction.data);
+    console.log(
+      "Interpolating game state to frame:",
+      frameNumber,
+      lastAction.data
+    );
 
     // Interpolate the game state to the target frame
     this.game.state = JSON.parse(JSON.stringify(lastAction.data.state));
