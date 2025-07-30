@@ -86,9 +86,9 @@ Game.findAll({
 // Routes here
 app.use("/api/auth", authRouter);
 app.use("/api/checkout", checkoutRouter);
-app.use("/api/queue", queueRouter);
-app.use("/api/game", gameRouter);
-app.use("/api/spectator", spectatorRouter);
+app.use("/api/queues", queueRouter);
+app.use("/api/games", gameRouter);
+app.use("/api/spectators", spectatorRouter);
 app.use("/api/replays", replayRouter);
 
 const PORT = process.env.PORT || 3000;

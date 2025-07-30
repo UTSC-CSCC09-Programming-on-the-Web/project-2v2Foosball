@@ -144,10 +144,10 @@ export class ReplayController {
               // Double check we're not still celebrating
               this.game.state.ball = { ...data.ball };
               this.game.state.team1.rods = JSON.parse(
-                JSON.stringify(GAME_DEFAULTS.state.team1.rods)
+                JSON.stringify(GAME_DEFAULTS.state.team1.rods),
               );
               this.game.state.team2.rods = JSON.parse(
-                JSON.stringify(GAME_DEFAULTS.state.team2.rods)
+                JSON.stringify(GAME_DEFAULTS.state.team2.rods),
               );
             }
           }, 3100); // Slightly after celebration ends
@@ -156,10 +156,10 @@ export class ReplayController {
           this.isPaused = false;
           this.game.state.ball = { ...data.ball };
           this.game.state.team1.rods = JSON.parse(
-            JSON.stringify(GAME_DEFAULTS.state.team1.rods)
+            JSON.stringify(GAME_DEFAULTS.state.team1.rods),
           );
           this.game.state.team2.rods = JSON.parse(
-            JSON.stringify(GAME_DEFAULTS.state.team2.rods)
+            JSON.stringify(GAME_DEFAULTS.state.team2.rods),
           );
         }
         break;
@@ -279,7 +279,7 @@ export class ReplayController {
     console.log(
       "Interpolating game state to frame:",
       frameNumber,
-      lastAction.data
+      lastAction.data,
     );
 
     // Interpolate the game state to the target frame
