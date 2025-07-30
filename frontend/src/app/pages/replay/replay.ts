@@ -32,6 +32,7 @@ export class ReplayPage implements OnInit, OnDestroy {
   gameId: string | null = null;
   isConnected = false;
   isLoading = true;
+  isPaused = false;
   error: string | null = null;
 
   // State received from backend
@@ -118,6 +119,21 @@ export class ReplayPage implements OnInit, OnDestroy {
   }
 
   goBack(): void {
+    this.router.navigate(['/']);
+  }
+
+  pauseReplay(): void {
+    this.isPaused = true;
+    this.replayService.pauseReplay();
+  }
+
+  resumeReplay(): void {
+    this.isPaused = false;
+    this.replayService.resumeReplay();
+  }
+
+  stopReplay(): void {
+    this.replayService.stopReplay();
     this.router.navigate(['/']);
   }
 }

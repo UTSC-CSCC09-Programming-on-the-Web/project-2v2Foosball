@@ -24,6 +24,13 @@
         (showGoalCelebration)="this.triggerGoalCelebration()"
       />
     </div>
+
+    <div class="replay-controls">
+      <button (click)="isPaused ? resumeReplay() : pauseReplay()">
+        {{ isPaused ? 'Resume' : 'Pause' }}
+      </button>
+      <button (click)="stopReplay()">Stop Replay</button>
+    </div>
   </div>
   }
 

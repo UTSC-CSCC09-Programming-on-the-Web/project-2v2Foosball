@@ -55,4 +55,17 @@ export class ReplayService {
   clearCurrentGame(): void {
     this.currentGameId.next(null);
   }
+
+  pauseReplay(): void {
+    this.socketService.emit('replay.pause', this.currentGameId.value);
+  }
+
+  resumeReplay(): void {
+    this.socketService.emit('replay.resume', this.currentGameId.value);
+  }
+
+  stopReplay(): void {
+    this.socketService.emit('replay.stop', this.currentGameId.value);
+    this.clearCurrentGame();
+  }
 }
