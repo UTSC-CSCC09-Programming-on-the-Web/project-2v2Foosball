@@ -187,3 +187,30 @@
     padding: 0.5rem;
   }
 }
+
+.replay-controls {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.replay-controls button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #e70c0c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.replay-controls button:hover {
+  background-color: #7a0400;
+}
+
+.replay-controls button:disabled {
+  background-color: #888;
+  cursor: not-allowed;
+}

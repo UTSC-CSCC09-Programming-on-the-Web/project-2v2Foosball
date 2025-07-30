@@ -91,7 +91,7 @@ replayRouter.get("/actions/:gameId", isAuth, async (req, res) => {
   try {
     const actions = await GameAction.findAll({
       where: { gameId },
-      order: [["elapsedMs", "ASC"]],
+      order: [["frameNumber", "ASC"]],
     });
 
     if (!actions.length) {
