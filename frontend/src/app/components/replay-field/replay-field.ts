@@ -27,7 +27,6 @@ export class ReplayFieldComponent
   private ctx!: CanvasRenderingContext2D;
   private canvas!: HTMLCanvasElement;
 
-
   @Output() showGoalCelebration = new EventEmitter<null>();
 
   // Game state inputs - these will be updated directly from replay actions
@@ -53,8 +52,7 @@ export class ReplayFieldComponent
     this.draw();
   }
 
-  ngOnDestroy(): void {
-  }
+  ngOnDestroy(): void {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.ctx) {

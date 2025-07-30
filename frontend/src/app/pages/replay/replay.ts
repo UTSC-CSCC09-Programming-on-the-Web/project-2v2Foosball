@@ -29,6 +29,8 @@ export class ReplayPage implements OnInit, OnDestroy {
   private replayStartedSub?: Subscription;
   private replayStateSub?: Subscription;
   private replayStoppedSub?: Subscription;
+  private replayGoalSub?: Subscription;
+  private replayGameEndedSub?: Subscription;
   gameId: string | null = null;
   isConnected = false;
   isLoading = true;
@@ -64,7 +66,7 @@ export class ReplayPage implements OnInit, OnDestroy {
   constructor(
     private replayService: ReplayService,
     private socketService: SocketService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -89,18 +91,58 @@ export class ReplayPage implements OnInit, OnDestroy {
     this.replayStoppedSub = this.socketService
       .listen<any>('replay.stopped')
       .subscribe(() => {});
+
+    // Subscribe to goal events to trigger celebrations
+    this.replayGoalSub = this.socketService
+      .listen<any>('replay.goal')
+      .subscribe((goalData) => {
+        if (goalData) {
+          this.triggerGoalCelebration();
+        }
+      });
+
+    // Subscribe to game end events to show post-game overlay
+    this.replayGameEndedSub = this.socketService
+      .listen<any>('replay.game_ended')
+      .subscribe((gameEndData) => {
+        if (gameEndData) {
+          this.handleGameEnd(gameEndData);
+        }
+      });
   }
 
   ngOnDestroy(): void {
     this.replayStartedSub?.unsubscribe();
     this.replayStateSub?.unsubscribe();
     this.replayStoppedSub?.unsubscribe();
+    this.replayGoalSub?.unsubscribe();
+    this.replayGameEndedSub?.unsubscribe();
     this.socketService.emit('replay.stop');
+
+    // Clear goal celebration timer
+    if (this.goalCelebrationTimer) {
+      clearTimeout(this.goalCelebrationTimer);
+    }
   }
 
   private onError(error: string) {
     this.error = error;
     this.isLoading = false;
+  }
+
+  private handleGameEnd(gameEndData: any): void {
+    // Hide any goal celebration
+    this.showGoalCelebration = false;
+    if (this.goalCelebrationTimer) {
+      clearTimeout(this.goalCelebrationTimer);
+    }
+
+    // Set up game end screen data
+    this.gameWinner = gameEndData.winner;
+    this.finalScore = gameEndData.finalScore;
+
+    // Show the game end screen
+    this.showGameEndScreen = true;
   }
 
   triggerGoalCelebration(): void {

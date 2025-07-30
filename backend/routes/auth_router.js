@@ -28,7 +28,7 @@ function signToken(user) {
     process.env.JWT_SIGNING_KEY,
     {
       expiresIn: "7d",
-    }
+    },
   );
 }
 
@@ -65,7 +65,7 @@ authRouter.get(
     generateCsrfToken(req, res);
 
     return res.redirect(`${process.env.FRONTEND_URL}`);
-  }
+  },
 );
 
 authRouter.get(
@@ -90,7 +90,7 @@ authRouter.get(
     generateCsrfToken(req, res);
 
     return res.redirect(`${process.env.FRONTEND_URL}`);
-  }
+  },
 );
 
 authRouter.post("/mock", (req, res) => {
@@ -247,5 +247,5 @@ authRouter.post(
     });
 
     res.json({ message: "Logged out successfully" });
-  }
+  },
 );

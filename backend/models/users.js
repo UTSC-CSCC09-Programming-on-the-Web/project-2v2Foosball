@@ -53,5 +53,5 @@ export const User = sequelize.define(
         fields: ["stripeCustomerId"],
       },
     ],
-  }
+  },
 );

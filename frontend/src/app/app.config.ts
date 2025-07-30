@@ -22,7 +22,7 @@ export const appConfig: ApplicationConfig = {
         cookieName: 'xsrf-token',
         headerName: 'x-csrf-token',
       }),
-      withInterceptorsFromDi()
+      withInterceptorsFromDi(),
     ),
   ],
 };

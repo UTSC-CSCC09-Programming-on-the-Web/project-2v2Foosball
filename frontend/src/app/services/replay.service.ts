@@ -19,7 +19,10 @@ export interface Replay {
 export class ReplayService {
   private currentGameId = new BehaviorSubject<string | null>(null);
 
-  constructor(private http: HttpClient, private socketService: SocketService) {}
+  constructor(
+    private http: HttpClient,
+    private socketService: SocketService,
+  ) {}
 
   // Fetch paginated game history for a user
   getGameHistory(userId: string, page: number = 0): Observable<GameData[]> {
@@ -27,7 +30,7 @@ export class ReplayService {
       `${environment.apiUrl}/replays/${userId}?page=${page}`,
       {
         withCredentials: true,
-      }
+      },
     );
   }
 
@@ -37,7 +40,7 @@ export class ReplayService {
       `${environment.apiUrl}/replays/actions/${gameId}`,
       {
         withCredentials: true,
-      }
+      },
     );
   }
 

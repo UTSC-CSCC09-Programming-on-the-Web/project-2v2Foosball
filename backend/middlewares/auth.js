@@ -93,7 +93,7 @@ export const isAuthSocket = async (socket, next) => {
     ) {
       if (process.env.NODE_ENV !== "development") {
         return next(
-          new Error("Mock users are only allowed in development mode")
+          new Error("Mock users are only allowed in development mode"),
         );
       }
       socket.user = decoded;
