@@ -14,30 +14,30 @@ export class Api {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private authService: AuthService,
+    private authService: AuthService
   ) {}
 
   // Add User to Queue
   addToQueue(user: User): Observable<User> {
     return this.http.post<User>(
-      `${environment.apiUrl}/queue/add`,
+      `${environment.apiUrl}/queues/add`,
       { user },
-      { withCredentials: true },
+      { withCredentials: true }
     );
   }
 
   // remove User from Queue
   removeFromQueue(user: User): Observable<User> {
     return this.http.post<User>(
-      `${environment.apiUrl}/queue/remove`,
+      `${environment.apiUrl}/queues/remove`,
       { user },
-      { withCredentials: true },
+      { withCredentials: true }
     );
   }
 
   // Get Queue
   getQueue(): Observable<{ queue: User[] }> {
-    return this.http.get<{ queue: User[] }>(`${environment.apiUrl}/queue`, {
+    return this.http.get<{ queue: User[] }>(`${environment.apiUrl}/queues`, {
       withCredentials: true,
     });
   }
@@ -45,7 +45,7 @@ export class Api {
   // Check if User is in Queue
   isUserInQueue(): Observable<boolean> {
     return this.http
-      .get<{ isInQueue: boolean }>(`${environment.apiUrl}/queue/userInQueue`, {
+      .get<{ isInQueue: boolean }>(`${environment.apiUrl}/queues/userInQueue`, {
         withCredentials: true,
       })
       .pipe(switchMap((response) => [response.isInQueue]));
@@ -54,14 +54,14 @@ export class Api {
   // Check if User is in an active game
   isUserInGame(): Observable<boolean> {
     return this.http
-      .get<{ isInGame: boolean }>(`${environment.apiUrl}/queue/userInGame`, {
+      .get<{ isInGame: boolean }>(`${environment.apiUrl}/queues/userInGame`, {
         withCredentials: true,
       })
       .pipe(switchMap((response) => [response.isInGame]));
   }
 
   getGame(): Observable<GameInit> {
-    return this.http.get<GameInit>(`${environment.apiUrl}/game`, {
+    return this.http.get<GameInit>(`${environment.apiUrl}/games`, {
       withCredentials: true,
     });
   }

@@ -42,7 +42,7 @@ app.use(
   cors({
     origin: [process.env.FRONTEND_URL || "http://localhost:4200"],
     credentials: true,
-  }),
+  })
 );
 app.use("/api/webhook", webhookRouter); // has to be before express.json() is applied
 app.use(express.json());
@@ -74,7 +74,7 @@ Game.findAll({
       "with scores:",
       game.dataValues.score1,
       "-",
-      game.dataValues.score2,
+      game.dataValues.score2
     );
     addNewGame(game.dataValues.gameId, {
       team1: game.dataValues.score1,
@@ -86,9 +86,9 @@ Game.findAll({
 // Routes here
 app.use("/api/auth", authRouter);
 app.use("/api/checkout", checkoutRouter);
-app.use("/api/queue", queueRouter);
-app.use("/api/game", gameRouter);
-app.use("/api/spectator", spectatorRouter);
+app.use("/api/queues", queueRouter);
+app.use("/api/games", gameRouter);
+app.use("/api/spectators", spectatorRouter);
 app.use("/api/replays", replayRouter);
 
 const PORT = process.env.PORT || 3000;
