@@ -14,7 +14,7 @@ export class Api {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   // Add User to Queue
@@ -22,7 +22,7 @@ export class Api {
     return this.http.post<User>(
       `${environment.apiUrl}/queues/add`,
       { user },
-      { withCredentials: true }
+      { withCredentials: true },
     );
   }
 
@@ -31,7 +31,7 @@ export class Api {
     return this.http.post<User>(
       `${environment.apiUrl}/queues/remove`,
       { user },
-      { withCredentials: true }
+      { withCredentials: true },
     );
   }
 
