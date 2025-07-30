@@ -1,5 +1,9 @@
 # 2v2 Foosball
 
+Deployment: <https://foosball.games>
+
+Video: <https://www.youtube.com/watch?v=aM6fARzxJ8Q>
+
 ### Team Members:
 
 | Name         | Email                         | UTORID   |

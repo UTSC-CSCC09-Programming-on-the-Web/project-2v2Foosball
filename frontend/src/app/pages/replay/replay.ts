@@ -145,6 +145,7 @@ export class ReplayPage implements OnInit, OnDestroy {
 
     // Show the game end screen
     this.showGameEndScreen = true;
+    this.isPaused = true;
   }
 
   triggerGoalCelebration(): void {

@@ -19,7 +19,7 @@ export class SpectatorService {
   // Get list of active games from REST API
   getActiveGames(): Observable<GameData[]> {
     return this.http.get<GameData[]>(
-      `${environment.apiUrl}/spectator/active-games`,
+      `${environment.apiUrl}/spectators/active-games`,
       { withCredentials: true },
     );
   }
