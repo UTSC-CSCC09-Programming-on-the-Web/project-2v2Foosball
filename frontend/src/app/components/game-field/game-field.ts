@@ -446,11 +446,17 @@ export class GameFieldComponent implements AfterViewInit, OnDestroy, OnChanges {
     this.ctx.arc(x, figure.y, this.config.figureRadius, 0, 2 * Math.PI);
     this.ctx.fill();
 
-    // Figure outline
-    this.ctx.strokeStyle = active ? '#ffffff' : '#000000';
-    this.ctx.lineWidth = active ? 2 : 1;
+    // Figure outline - consistent white outline like spectator/replay
+    this.ctx.strokeStyle = '#ffffff';
+    this.ctx.lineWidth = 2;
     this.ctx.beginPath();
     this.ctx.arc(x, figure.y, this.config.figureRadius, 0, 2 * Math.PI);
     this.ctx.stroke();
+
+    // Figure highlight - add the same highlight effect as spectator/replay
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    this.ctx.beginPath();
+    this.ctx.arc(x - 3, figure.y - 3, this.config.figureRadius, 0, 2 * Math.PI);
+    this.ctx.fill();
   }
 }

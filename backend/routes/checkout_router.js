@@ -69,5 +69,5 @@ checkoutRouter.post(
     res.status(201).json({
       url: session.url,
     });
-  }
+  },
 );

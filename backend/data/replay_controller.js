@@ -24,6 +24,8 @@ export class ReplayController {
     this.game = null; // Will hold the game state
     this.currentFrame = 0;
     this.isPaused = false;
+    this.isManuallyPaused = false; // Track manual vs automatic pauses
+    this.isCelebrating = false; // Track if we're in goal celebration
     this.next = null;
   }
 
@@ -134,10 +136,32 @@ export class ReplayController {
         break;
       }
       case "ball_reset":
-        this.isPaused = false;
-        this.game.state.ball = { ...data.ball };
-        this.game.state.team1.rods = GAME_DEFAULTS.state.team1.rods;
-        this.game.state.team2.rods = GAME_DEFAULTS.state.team2.rods;
+        // If we're celebrating a goal, delay the ball reset until after celebration
+        if (this.isCelebrating) {
+          // Schedule ball reset for after celebration ends
+          setTimeout(() => {
+            if (!this.isCelebrating) {
+              // Double check we're not still celebrating
+              this.game.state.ball = { ...data.ball };
+              this.game.state.team1.rods = JSON.parse(
+                JSON.stringify(GAME_DEFAULTS.state.team1.rods),
+              );
+              this.game.state.team2.rods = JSON.parse(
+                JSON.stringify(GAME_DEFAULTS.state.team2.rods),
+              );
+            }
+          }, 3100); // Slightly after celebration ends
+        } else {
+          // Normal ball reset when not celebrating
+          this.isPaused = false;
+          this.game.state.ball = { ...data.ball };
+          this.game.state.team1.rods = JSON.parse(
+            JSON.stringify(GAME_DEFAULTS.state.team1.rods),
+          );
+          this.game.state.team2.rods = JSON.parse(
+            JSON.stringify(GAME_DEFAULTS.state.team2.rods),
+          );
+        }
         break;
       case "goal":
         // Update scores if present
@@ -148,9 +172,35 @@ export class ReplayController {
         ) {
           this.game.state.team1.score = data.score1;
           this.game.state.team2.score = data.score2;
+
+          // Add a short delay for triggering the goal celebration
+          setTimeout(() => {
+            // Emit goal event to trigger celebration in frontend
+            this.socket.emit("replay.goal", {
+              team1Score: data.score1,
+              team2Score: data.score2,
+            });
+
+            // Pause replay for goal celebration (3 seconds like live game)
+            this.pauseForGoalCelebration();
+          }, 25); // 100ms delay - shorter delay for more responsive celebration timing
         }
         break;
       case "game_ended":
+        // Determine the winner and final scores
+        const team1Score = this.game.state.team1.score;
+        const team2Score = this.game.state.team2.score;
+        const winner = team1Score > team2Score ? 1 : 2;
+
+        // Emit game end event to frontend with winner and final score data
+        this.socket.emit("replay.game_ended", {
+          winner: winner,
+          finalScore: {
+            team1: team1Score,
+            team2: team2Score,
+          },
+        });
+
         this.endReplay();
         break;
       default:
@@ -165,9 +215,29 @@ export class ReplayController {
     clearTimeout(this.next);
   }
 
+  // Pause replay for goal celebration (matches live game timing)
+  pauseForGoalCelebration() {
+    this.isPaused = true;
+    this.isCelebrating = true; // Mark that we're celebrating
+    clearTimeout(this.next);
+
+    // Resume replay after 3 seconds (same as live game celebration duration)
+    setTimeout(() => {
+      // Only resume if not manually paused by user
+      if (!this.isManuallyPaused) {
+        this.isPaused = false;
+        this.isCelebrating = false; // End celebration
+        this.playNextFrame();
+      } else {
+        this.isCelebrating = false; // End celebration even if manually paused
+      }
+    }, 3000);
+  }
+
   // Pause the replay
   pause() {
     this.isPaused = true;
+    this.isManuallyPaused = true; // Mark as manually paused
     this.socket.emit("replay.paused");
 
     // Remove any scheduled frame updates
@@ -178,6 +248,7 @@ export class ReplayController {
   resume() {
     if (this.isPaused) {
       this.isPaused = false;
+      this.isManuallyPaused = false; // Clear manual pause flag
       this.playNextFrame();
       this.socket.emit("replay.resumed");
     }

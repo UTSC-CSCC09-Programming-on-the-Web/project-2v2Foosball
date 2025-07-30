@@ -17,12 +17,7 @@
     </div>
 
     <div class="game-field-container">
-      <app-replay-field
-        [ball]="ball"
-        [rods]="rods"
-        [config]="config"
-        (showGoalCelebration)="this.triggerGoalCelebration()"
-      />
+      <app-replay-field [ball]="ball" [rods]="rods" [config]="config" />
     </div>
 
     <div class="replay-controls">

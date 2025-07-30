@@ -52,7 +52,7 @@ export const GameAction = sequelize.define(
       { fields: ["elapsedMs"] },
       { fields: ["frameNumber"] },
     ],
-  }
+  },
 );
 
 Game.hasMany(GameAction, {
