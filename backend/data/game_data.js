@@ -668,7 +668,7 @@ export async function addNewGame(gameId, initialScores = null) {
     gameDefaults.state.team2.score = initialScores.team2 || 0;
   }
 
-  games.set(gameId, {
+  const newGame = {
     ...gameDefaults,
     frameCount: 0,
     gameFunction: setInterval(() => gameFunction(gameId), 1000 / 60),
@@ -678,7 +678,12 @@ export async function addNewGame(gameId, initialScores = null) {
       spectatorService.SNAPSHOT_INTERVAL,
     ),
     startTime: Date.now(),
-  });
+  };
+
+  games.set(gameId, newGame);
+
+  // Explicitly reset rods to default positions to ensure clean start
+  resetRodsToDefault(newGame);
 
   // Record game start action for replay
   try {
