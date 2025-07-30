@@ -71,4 +71,8 @@ export class ReplayService {
     this.socketService.emit('replay.stop', this.currentGameId.value);
     this.clearCurrentGame();
   }
+
+  rewindReplay(): void {
+    this.socketService.emit('replay.rewind', this.currentGameId.value);
+  }
 }

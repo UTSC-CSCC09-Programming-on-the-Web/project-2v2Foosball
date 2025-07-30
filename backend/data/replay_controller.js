@@ -8,6 +8,7 @@ import {
   updateRods,
   checkGoals,
 } from "./game_data.js";
+import { Op } from "sequelize";
 
 export class ReplayController {
   /**
@@ -32,7 +33,12 @@ export class ReplayController {
   async loadActions() {
     try {
       const actions = await GameAction.findAll({
-        where: { gameId: this.gameId },
+        where: {
+          gameId: this.gameId,
+          type: {
+            [Op.ne]: "game_snapshot", // exclude game_snapshot actions
+          },
+        },
         order: [["frameNumber", "ASC"]],
       });
       if (!actions.length) {
@@ -57,8 +63,6 @@ export class ReplayController {
   async start() {
     this.isPaused = false;
     this.currentFrame = 0;
-
-    console.log(this.actions.get(0));
 
     // Initial game state should be default
     this.game = {
@@ -250,8 +254,61 @@ export class ReplayController {
     }
   }
 
-  // Seek/rewind to a specific frame
-  seek(frameNumber) {
-    // TODO
+  // Helper function to for rewind
+  async _goToLastSnapshotInterval(frameNumber) {
+    // Get the last action before the target frame
+    const lastAction = await GameAction.findOne({
+      where: {        
+        gameId: this.gameId,
+        frameNumber: {
+          [Op.lte]: frameNumber,
+        },
+      },
+      order: [["frameNumber", "DESC"]],
+    });
+
+    if (!lastAction) {
+      this.socket.emit("replay.error", "No actions found for rewind");
+      return;
+    }
+
+    // Set the game state to the last snapshot
+    this.currentFrame = lastAction.frameNumber;
+
+    console.log("Interpolating game state to frame:", frameNumber, lastAction.data);
+
+    // Interpolate the game state to the target frame
+    this.game.state = JSON.parse(JSON.stringify(lastAction.data.state));
+    this.game.config = JSON.parse(JSON.stringify(lastAction.data.config));
+  }
+
+  // Rewind 5 seconds
+  async rewind() {
+    const rewindAmount = 5 * 60; // 5 seconds in frames (60 FPS)
+    const newFrame = this.currentFrame - rewindAmount;
+    if (newFrame < 0) {
+      this.socket.emit("replay.error", "Invalid frame number");
+      return;
+    }
+
+    clearTimeout(this.next);
+
+    // Go to the last snapshot interval before the new frame
+    await this._goToLastSnapshotInterval(newFrame);
+
+    this.socket.emit("replay.state", {
+      ball: this.game.state.ball,
+      rods: {
+        team1: this.game.state.team1.rods,
+        team2: this.game.state.team2.rods,
+      },
+      config: this.game.config,
+      score: {
+        team1: this.game.state.team1.score,
+        team2: this.game.state.team2.score,
+      },
+    });
+
+    this.playNextFrame();
   }
 }

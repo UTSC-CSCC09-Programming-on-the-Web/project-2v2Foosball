@@ -29,6 +29,7 @@ export class ReplayPage implements OnInit, OnDestroy {
   private replayStartedSub?: Subscription;
   private replayStateSub?: Subscription;
   private replayStoppedSub?: Subscription;
+  private replayRewindSub?: Subscription;
   private replayGoalSub?: Subscription;
   private replayGameEndedSub?: Subscription;
   gameId: string | null = null;
@@ -115,6 +116,7 @@ export class ReplayPage implements OnInit, OnDestroy {
     this.replayStartedSub?.unsubscribe();
     this.replayStateSub?.unsubscribe();
     this.replayStoppedSub?.unsubscribe();
+    this.replayRewindSub?.unsubscribe();
     this.replayGoalSub?.unsubscribe();
     this.replayGameEndedSub?.unsubscribe();
     this.socketService.emit('replay.stop');
@@ -177,5 +179,9 @@ export class ReplayPage implements OnInit, OnDestroy {
   stopReplay(): void {
     this.replayService.stopReplay();
     this.router.navigate(['/']);
+  }
+
+  rewindReplay(): void {
+    this.replayService.rewindReplay();
   }
 }

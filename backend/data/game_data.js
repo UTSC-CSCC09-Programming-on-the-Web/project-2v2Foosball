@@ -85,6 +85,29 @@ function spectatorUpdateFunction(gameId) {
   }
 }
 
+async function replayUpdateFunction(gameId) {
+  const game = games.get(gameId);
+
+  if (!game) {
+    return;
+  }
+
+  // Update the game state
+  const stateCopy = { ...game.state };
+  stateCopy.pauseTimer = null; // Avoid circular reference
+
+  await GameAction.create({
+    gameId,
+    elapsedMs: Date.now() - game.startTime,
+    frameNumber: game.frameCount,
+    type: "game_snapshot",
+    data: {
+      state: JSON.parse(JSON.stringify(stateCopy)),
+      config: JSON.parse(JSON.stringify(game.config)),
+    },
+  });
+}
+
 function updateFunction(gameId) {
   const game = games.get(gameId);
   if (!game) {
@@ -603,6 +626,9 @@ export async function endGame(game, gameId) {
   if (game.state.pauseTimer) {
     clearTimeout(game.state.pauseTimer);
   }
+  if (game.replayFunction) {
+    clearInterval(game.replayFunction);
+  }
 
   // Immediately remove players from this game to prevent new game creation issues
   try {
@@ -677,6 +703,7 @@ export async function addNewGame(gameId, initialScores = null) {
       () => spectatorUpdateFunction(gameId),
       spectatorService.SNAPSHOT_INTERVAL,
     ),
+    replayFunction: setInterval(() => replayUpdateFunction(gameId), 5000),
     startTime: Date.now(),
   };
 
