@@ -169,17 +169,34 @@ export class ReplayController {
           this.game.state.team1.score = data.score1;
           this.game.state.team2.score = data.score2;
 
-          // Emit goal event to trigger celebration in frontend
-          this.socket.emit("replay.goal", {
-            team1Score: data.score1,
-            team2Score: data.score2,
-          });
+          // Add a short delay for triggering the goal celebration
+          setTimeout(() => {
+            // Emit goal event to trigger celebration in frontend
+            this.socket.emit("replay.goal", {
+              team1Score: data.score1,
+              team2Score: data.score2,
+            });
 
-          // Pause replay for goal celebration (3 seconds like live game)
-          this.pauseForGoalCelebration();
+            // Pause replay for goal celebration (3 seconds like live game)
+            this.pauseForGoalCelebration();
+          }, 25); // 100ms delay - shorter delay for more responsive celebration timing
         }
         break;
       case "game_ended":
+        // Determine the winner and final scores
+        const team1Score = this.game.state.team1.score;
+        const team2Score = this.game.state.team2.score;
+        const winner = team1Score > team2Score ? 1 : 2;
+
+        // Emit game end event to frontend with winner and final score data
+        this.socket.emit("replay.game_ended", {
+          winner: winner,
+          finalScore: {
+            team1: team1Score,
+            team2: team2Score,
+          },
+        });
+
         this.endReplay();
         break;
       default:
