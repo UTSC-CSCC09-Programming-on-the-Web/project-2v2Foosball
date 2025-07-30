@@ -33,6 +33,7 @@ export const GameAction = sequelize.define(
         "goal",
         "game_ended",
         "ball_reset",
+        "game_snapshot",
       ],
       allowNull: false,
     },

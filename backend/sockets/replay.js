@@ -35,18 +35,17 @@ export function registerReplayListeners(io, socket) {
     // Clean up controller
     if (activeReplays.has(userId)) {
       const replay = activeReplays.get(userId);
-      console.log("Stopping replay for game:", gameId);
       replay.endReplay();
       activeReplays.delete(userId);
     }
   });
 
-  // Seek (or rewind) to a specific frame
-  socket.on("replay.seek", ({ gameId, frameNumber }) => {
+  // Rewind the replay 5 seconds
+  socket.on("replay.rewind", (gameId) => {
     const userId = socket.user.userId;
     const ctrls = activeReplays.get(userId);
     if (ctrls) {
-      ctrls.seek(frameNumber);
+      ctrls.rewind();
     }
   });
 
