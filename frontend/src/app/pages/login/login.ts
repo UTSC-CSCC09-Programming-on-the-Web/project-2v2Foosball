@@ -14,7 +14,10 @@ export class Login {
   isGoogleLoading = false;
   isMockEnv = environment.production === false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+  ) {}
 
   onLogin(provider: 'github' | 'google') {
     if (provider === 'github') this.isGithubLoading = true;

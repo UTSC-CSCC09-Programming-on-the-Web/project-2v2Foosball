@@ -11,13 +11,16 @@ import { GameData } from '../types/game';
 export class SpectatorService {
   private currentGameId = new BehaviorSubject<string | null>(null);
 
-  constructor(private http: HttpClient, private socketService: SocketService) {}
+  constructor(
+    private http: HttpClient,
+    private socketService: SocketService,
+  ) {}
 
   // Get list of active games from REST API
   getActiveGames(): Observable<GameData[]> {
     return this.http.get<GameData[]>(
       `${environment.apiUrl}/spectator/active-games`,
-      { withCredentials: true }
+      { withCredentials: true },
     );
   }
 
